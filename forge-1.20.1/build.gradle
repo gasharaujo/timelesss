@@ -1,0 +1,101 @@
+plugins {
+    id 'java-library'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = "${mod_id}-forge-${minecraft_version}"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+repositories {
+    flatDir {
+        dirs 'test-mods'
+    }
+}
+
+minecraft {
+    mappings channel: mapping_channel, version: mapping_version
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'info'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        client {
+        }
+
+        server {
+            args '--nogui'
+        }
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    runtimeOnly fg.deobf('testmods:AdvancedAE:1.3.6-1.20.1')
+    runtimeOnly fg.deobf('testmods:architectury:9.2.14-forge')
+    runtimeOnly fg.deobf('testmods:appliedenergistics2-forge:15.4.10')
+    runtimeOnly fg.deobf('testmods:cloth-config:11.1.136-forge')
+    runtimeOnly fg.deobf('testmods:curios-forge:5.14.1+1.20.1')
+    runtimeOnly fg.deobf('testmods:easy-villagers-forge-1.20.1:1.1.39')
+    runtimeOnly fg.deobf('testmods:ExtendedAE-1.20:1.4.18-forge')
+    runtimeOnly fg.deobf('testmods:geckolib-forge-1.20.1:4.8.4')
+    runtimeOnly fg.deobf('testmods:Glodium-1.20:1.5-forge')
+    runtimeOnly fg.deobf('testmods:guideme:20.1.15')
+    runtimeOnly fg.deobf('testmods:Jade-1.20.1-Forge:11.13.3')
+    runtimeOnly fg.deobf('testmods:jei-1.20.1-forge:15.49.0.194')
+    runtimeOnly fg.deobf('testmods:Powah:5.0.11')
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    def replaceProperties = [
+        minecraft_version_range: minecraft_version_range,
+        forge_version_range: forge_version_range,
+        loader_version_range: loader_version_range,
+        mod_id: mod_id,
+        mod_name: mod_name,
+        mod_license: mod_license,
+        mod_version: mod_version,
+        mod_authors: mod_authors,
+        mod_description: mod_description
+    ]
+    inputs.properties replaceProperties
+    filesMatching('META-INF/mods.toml') {
+        expand replaceProperties
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+            'Specification-Title': mod_name,
+            'Specification-Vendor': mod_authors,
+            'Specification-Version': '1',
+            'Implementation-Title': project.name,
+            'Implementation-Version': project.jar.archiveVersion,
+            'Implementation-Vendor': mod_authors
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 17
+}

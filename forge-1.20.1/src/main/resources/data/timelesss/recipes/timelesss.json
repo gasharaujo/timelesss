@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CFC",
+    "FRF",
+    "CFC"
+  ],
+  "key": {
+    "C": {
+      "tag": "timelesss:coal_or_charcoal_blocks"
+    },
+    "F": {
+      "item": "minecraft:iron_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "result": {
+    "item": "timelesss:timelesss",
+    "count": 1
+  }
+}
+

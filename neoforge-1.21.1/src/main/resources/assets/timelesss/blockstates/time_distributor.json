@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "": { "model": "timelesss:block/time_distributor" }
+  }
+}
+

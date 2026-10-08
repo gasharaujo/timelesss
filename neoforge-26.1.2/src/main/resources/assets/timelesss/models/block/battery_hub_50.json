@@ -1,0 +1,7 @@
+{
+  "parent": "timelesss:block/battery_hub_base",
+  "textures": {
+    "side": "timelesss:block/battery_hub_side",
+    "face": "timelesss:block/battery_hub_face_50"
+  }
+}

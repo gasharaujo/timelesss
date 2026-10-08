@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["NSN", "RTR", "NDN"],
+  "key": {
+    "N": { "item": "minecraft:netherite_ingot" },
+    "S": { "item": "minecraft:nether_star" },
+    "R": { "item": "minecraft:redstone_block" },
+    "T": { "item": "timelesss:timelesss" },
+    "D": { "item": "minecraft:dragon_head" }
+  },
+  "result": { "item": "timelesss:time_distributor" }
+}

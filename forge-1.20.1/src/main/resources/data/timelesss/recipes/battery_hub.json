@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["BNB", "BTB", "BNB"],
+  "key": {
+    "B": { "item": "timelesss:battery" },
+    "N": { "item": "minecraft:netherite_ingot" },
+    "T": { "item": "timelesss:timelesss" }
+  },
+  "result": { "item": "timelesss:battery_hub" }
+}

@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "charge=0": { "model": "timelesss:block/battery_hub_empty" },
+    "charge=1": { "model": "timelesss:block/battery_hub_50" },
+    "charge=2": { "model": "timelesss:block/battery_hub_75" },
+    "charge=3": { "model": "timelesss:block/battery_hub_full" }
+  }
+}
