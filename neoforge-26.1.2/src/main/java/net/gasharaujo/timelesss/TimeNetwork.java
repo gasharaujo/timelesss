@@ -17,7 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
 public final class TimeNetwork {
-    public static final int MAX_MULTIPLIER = 50;
+    public static int maxMultiplier() { return ResourceConfig.distributorMax(); }
     private static final String ROOT_KEY = "timelesss_time_network";
     private static final String BINDS_KEY = "binds";
     private static final String DISTRIBUTORS_KEY = "distributors";
@@ -35,7 +35,7 @@ public final class TimeNetwork {
             CompoundTag entry = list.getCompoundOrEmpty(index);
             result.add(new Bind(
                 entry.getStringOr("dimension", ""), entry.getLongOr("position", 0L),
-                Math.max(0, Math.min(MAX_MULTIPLIER, entry.getIntOr("multiplier", 0)))
+                Math.max(0, Math.min(maxMultiplier(), entry.getIntOr("multiplier", 0)))
             ));
         }
         return result;
@@ -56,7 +56,7 @@ public final class TimeNetwork {
         for (int index = 0; index < binds.size(); index++) {
             Bind bind = binds.get(index);
             if (bind.position == position && bind.dimension.equals(dimension)) {
-                binds.set(index, new Bind(dimension, position, Math.max(0, Math.min(MAX_MULTIPLIER, multiplier))));
+                binds.set(index, new Bind(dimension, position, Math.max(0, Math.min(maxMultiplier(), multiplier))));
                 saveBinds(player, binds);
                 return;
             }
@@ -95,6 +95,7 @@ public final class TimeNetwork {
         long gameTime = eventLevel.getGameTime();
         MinecraftServer server = eventLevel.getServer();
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            net.gasharaujo.timelesss.resource.PersonalResources.recharge(player);
             if (gameTime % 20L == 0L) {
                 payForNextSecond(player);
             }
@@ -120,16 +121,14 @@ public final class TimeNetwork {
     private static void payForNextSecond(ServerPlayer player) {
         long cost = 0L;
         for (Bind bind : getBinds(player)) {
-            cost += 100L * bind.multiplier * bind.multiplier;
+            cost = net.gasharaujo.timelesss.resource.ResourceMath.add(cost, ResourceConfig.cost(ResourceConfig.networkResource(), bind.multiplier));
         }
         CompoundTag network = data(player);
-        if (cost == 0L) {
-            network.putInt("paid_ticks", 0);
-            return;
-        }
-
         List<PlayerEnergyNode> distributors = validEnergyNodes(player, true);
-        long available = distributors.stream().mapToLong(PlayerEnergyNode::getEnergyStored).sum();
+        if (distributors.isEmpty()) { network.putInt("paid_ticks", 0); return; }
+        if (cost == 0L) { network.putInt("paid_ticks", 20); return; }
+
+        long available = distributors.stream().mapToLong(PlayerEnergyNode::getResourceStored).sum();
         if (available < cost) {
             network.putInt("paid_ticks", 0);
             return;
@@ -137,7 +136,7 @@ public final class TimeNetwork {
 
         long remaining = cost;
         for (PlayerEnergyNode distributor : distributors) {
-            int extracted = distributor.extractEnergy((int) Math.min(Integer.MAX_VALUE, remaining));
+            long extracted = distributor.extractResource(remaining);
             remaining -= extracted;
             if (remaining == 0L) {
                 break;
@@ -148,10 +147,12 @@ public final class TimeNetwork {
 
     public static String snapshot(ServerPlayer player) {
         List<PlayerEnergyNode> distributors = validEnergyNodes(player, true);
-        long energy = distributors.stream().mapToLong(PlayerEnergyNode::getEnergyStored).sum();
-        long capacity = distributors.stream().mapToLong(PlayerEnergyNode::getEnergyCapacity).sum();
+        long energy = distributors.stream().mapToLong(PlayerEnergyNode::getResourceStored).sum();
+        long capacity = distributors.stream().mapToLong(PlayerEnergyNode::getResourceCapacity).sum();
         StringBuilder result = new StringBuilder().append(energy).append('|')
-            .append(capacity).append('\n');
+            .append(capacity).append('|').append(ResourceConfig.unit()).append('|')
+            .append(maxMultiplier()).append('|').append(ResourceConfig.value(ResourceConfig.CURVE).name()).append('|')
+            .append(ResourceConfig.cost(ResourceConfig.networkResource(),1)).append('\n');
         MinecraftServer server = player.level().getServer();
         for (Bind bind : getBinds(player)) {
             String blockId = "minecraft:air";
@@ -207,6 +208,7 @@ public final class TimeNetwork {
             list.add(entry);
         }
         data(player).put(BINDS_KEY, list);
+        data(player).putInt("paid_ticks", 0);
     }
 
     private static CompoundTag data(ServerPlayer player) {

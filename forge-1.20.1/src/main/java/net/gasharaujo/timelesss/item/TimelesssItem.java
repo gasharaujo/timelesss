@@ -23,7 +23,7 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 public final class TimelesssItem extends Item {
     public static final String MULTIPLIER_KEY = "timelesss_multiplier";
     public static final int MIN_MULTIPLIER = 1;
-    public static final int MAX_MULTIPLIER = 25;
+    public static int maxMultiplier() { return net.gasharaujo.timelesss.ResourceConfig.personalMax(); }
 
     public TimelesssItem(Properties properties) {
         super(properties);
@@ -33,6 +33,7 @@ public final class TimelesssItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (!player.isShiftKeyDown()) {
+            if (!level.isClientSide()) net.gasharaujo.timelesss.resource.ResourceInteraction.fillPersonal(player, hand, stack);
             return InteractionResultHolder.pass(stack);
         }
 
@@ -86,6 +87,7 @@ public final class TimelesssItem extends Item {
     ) {
         tooltip.add(Component.translatable("tooltip.timelesss.multiplier", getMultiplier(stack)).withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.translatable("tooltip.timelesss.open").withStyle(ChatFormatting.GRAY));
+        tooltip.add(net.gasharaujo.timelesss.resource.PersonalResources.status(stack).copy().withStyle(ChatFormatting.GRAY));
     }
 
     @Override
@@ -100,18 +102,29 @@ public final class TimelesssItem extends Item {
         });
     }
 
+
+    @Override public boolean isBarVisible(ItemStack stack) {
+        var type=net.gasharaujo.timelesss.ResourceConfig.personalResource();
+        return type!=net.gasharaujo.timelesss.resource.ResourceType.NONE && type!=net.gasharaujo.timelesss.resource.ResourceType.XP;
+    }
+    @Override public int getBarWidth(ItemStack stack) { return net.gasharaujo.timelesss.resource.PersonalResources.barWidth(stack); }
+    @Override public int getBarColor(ItemStack stack) { return 0x55DDCC; }
+    @Override public net.minecraftforge.common.capabilities.ICapabilityProvider initCapabilities(ItemStack stack, net.minecraft.nbt.CompoundTag tag) {
+        return new net.gasharaujo.timelesss.resource.ResourceCapabilities(stack);
+    }
+
     public static int getMultiplier(ItemStack stack) {
         int value = stack.getOrCreateTag().getInt(MULTIPLIER_KEY);
         if (value == 0) {
             value = MIN_MULTIPLIER;
         }
-        return Mth.clamp(value, MIN_MULTIPLIER, MAX_MULTIPLIER);
+        return Mth.clamp(value, MIN_MULTIPLIER, maxMultiplier());
     }
 
     public static void setMultiplier(ItemStack stack, int multiplier) {
         stack.getOrCreateTag().putInt(
             MULTIPLIER_KEY,
-            Mth.clamp(multiplier, MIN_MULTIPLIER, MAX_MULTIPLIER)
+            Mth.clamp(multiplier, MIN_MULTIPLIER, maxMultiplier())
         );
     }
 }

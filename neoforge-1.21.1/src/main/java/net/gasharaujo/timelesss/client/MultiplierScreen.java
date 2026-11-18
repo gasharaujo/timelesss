@@ -46,7 +46,7 @@ public final class MultiplierScreen extends Screen {
         graphics.drawCenteredString(this.font, this.title, this.width / 2, top + 14, 0xFFFFFFFF);
         graphics.drawCenteredString(
             this.font,
-            Component.translatable("screen.timelesss.range"),
+            Component.translatable("screen.timelesss.range", TimelesssItem.maxMultiplier()),
             this.width / 2,
             top + 31,
             0xFFB8B8C8
@@ -54,7 +54,7 @@ public final class MultiplierScreen extends Screen {
     }
 
     private void setMultiplier(int value) {
-        this.multiplier = Mth.clamp(value, TimelesssItem.MIN_MULTIPLIER, TimelesssItem.MAX_MULTIPLIER);
+        this.multiplier = Mth.clamp(value, TimelesssItem.MIN_MULTIPLIER, TimelesssItem.maxMultiplier());
         TimelesssItem.setMultiplier(this.stack, this.multiplier);
     }
 
@@ -97,7 +97,7 @@ public final class MultiplierScreen extends Screen {
                 width,
                 height,
                 Component.empty(),
-                (multiplier - TimelesssItem.MIN_MULTIPLIER) / 24.0
+                (multiplier - TimelesssItem.MIN_MULTIPLIER) / (double)Math.max(1, TimelesssItem.maxMultiplier() - 1)
             );
             this.updateMessage();
         }
@@ -109,7 +109,7 @@ public final class MultiplierScreen extends Screen {
 
         @Override
         protected void applyValue() {
-            int next = TimelesssItem.MIN_MULTIPLIER + (int) Math.round(this.value * 24.0);
+            int next = TimelesssItem.MIN_MULTIPLIER + (int) Math.round(this.value * Math.max(0, TimelesssItem.maxMultiplier() - 1));
             MultiplierScreen.this.setMultiplier(next);
             this.updateMessage();
         }

@@ -2,7 +2,7 @@
 setlocal
 chcp 65001 >nul
 set "ROOT=%~dp0"
-set "ver=2.1.2"
+set "ver=2.5"
 set "OUTPUT=%ROOT%builds"
 
 echo [1/3] Compilando NeoForge 26.1.2...
