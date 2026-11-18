@@ -17,6 +17,10 @@ public final class TimeBindsScreen extends Screen {
     private final List<BindView> binds;
     private final long energy;
     private final long capacity;
+    private String unit="FE";
+    private int maximum=50;
+    private boolean linear;
+    private long baseCost=100;
     private BindView selected;
     private int page;
 
@@ -31,6 +35,10 @@ public final class TimeBindsScreen extends Screen {
             if (header.length >= 2) {
                 parsedEnergy = parseLong(header[0]);
                 parsedCapacity = parseLong(header[1]);
+                if(header.length>=6) {
+                    unit=header[2];maximum=Math.max(1,(int)parseLong(header[3]));
+                    linear=header[4].equals("LINEAR");baseCost=parseLong(header[5]);
+                }
             }
         }
         for (int index = 1; index < lines.length; index++) {
@@ -76,7 +84,7 @@ public final class TimeBindsScreen extends Screen {
     private long currentConsumption() {
         long total = 0L;
         for (BindView bind : binds) {
-            total += 100L * bind.multiplier * bind.multiplier;
+            total = net.gasharaujo.timelesss.resource.ResourceMath.add(total, net.gasharaujo.timelesss.resource.ResourceMath.cost(baseCost,bind.multiplier,linear));
         }
         return total;
     }
@@ -145,9 +153,9 @@ public final class TimeBindsScreen extends Screen {
         graphics.fill(left, top, left + panelWidth, top + 2, 0xFFDD3344);
         graphics.drawCenteredString(font, title, width / 2, top + 7, 0xFFFFFFFF);
         graphics.drawCenteredString(font,
-            Component.translatable("screen.timelesss.binds.energy", energy, capacity), width / 2, top + 19, 0xFF7CFC98);
+            Component.translatable("screen.timelesss.binds.energy", energy, capacity, unit), width / 2, top + 19, 0xFF7CFC98);
         graphics.drawCenteredString(font,
-            Component.translatable("screen.timelesss.binds.consumption", currentConsumption()),
+            Component.translatable("screen.timelesss.binds.consumption", currentConsumption(), unit),
             width / 2, top + 31, 0xFFFFD166);
         int start = page * pageSize();
         int end = Math.min(binds.size(), start + pageSize());
@@ -175,7 +183,7 @@ public final class TimeBindsScreen extends Screen {
         return false;
     }
 
-    private static final class BindView {
+    private final class BindView {
         private final String dimension;
         private final long position;
         private int multiplier;
@@ -184,7 +192,7 @@ public final class TimeBindsScreen extends Screen {
         private BindView(String dimension, long position, int multiplier, String blockId) {
             this.dimension = dimension;
             this.position = position;
-            this.multiplier = Mth.clamp(multiplier, 0, TimeNetwork.MAX_MULTIPLIER);
+            this.multiplier = Mth.clamp(multiplier, 0, maximum);
             this.blockId = blockId;
         }
     }
@@ -193,7 +201,7 @@ public final class TimeBindsScreen extends Screen {
         private final BindView bind;
 
         private BindSlider(int x, int y, int width, int height, BindView bind) {
-            super(x, y, width, height, Component.empty(), bind.multiplier / 50.0D);
+            super(x, y, width, height, Component.empty(), bind.multiplier / (double)maximum);
             this.bind = bind;
             updateMessage();
         }
@@ -205,7 +213,7 @@ public final class TimeBindsScreen extends Screen {
 
         @Override
         protected void applyValue() {
-            bind.multiplier = Mth.clamp((int) Math.round(value * 50.0D), 0, TimeNetwork.MAX_MULTIPLIER);
+            bind.multiplier = Mth.clamp((int) Math.round(value * maximum), 0, maximum);
             updateMessage();
         }
 

@@ -74,12 +74,13 @@ public final class TimelesssMod {
     public static final DeferredItem<TimeWrenchItem> TIME_WRENCH = ITEMS.registerItem(
         "time_wrench", properties -> new TimeWrenchItem(properties.stacksTo(1).fireResistant())
     );
-    public static final DeferredItem<Item> BATTERY = ITEMS.registerSimpleItem("battery");
+    public static final DeferredItem<Item> BATTERY = ITEMS.registerItem("battery", net.gasharaujo.timelesss.item.BatteryItem::new);
     public static final DeferredItem<Item> BATTERY_HUB_ITEM = ITEMS.register(
         "battery_hub", () -> new BatteryHubItem(BATTERY_HUB.get(), new Item.Properties())
     );
 
-    public TimelesssMod(IEventBus modBus) {
+    public TimelesssMod(IEventBus modBus, net.neoforged.fml.ModContainer container) {
+        container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER, ResourceConfig.SPECIFICATION);
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
@@ -108,7 +109,7 @@ public final class TimelesssMod {
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        var registrar = event.registrar("4");
+        var registrar = event.registrar("5");
         registrar.playToServer(
             SetMultiplierPayload.TYPE,
             SetMultiplierPayload.STREAM_CODEC,
@@ -129,10 +130,7 @@ public final class TimelesssMod {
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, TIME_DISTRIBUTOR_BLOCK_ENTITY.get(),
-            (blockEntity, side) -> blockEntity.getEnergyHandler());
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BATTERY_HUB_BLOCK_ENTITY.get(),
-            (blockEntity, side) -> blockEntity.getEnergyHandler());
+        net.gasharaujo.timelesss.resource.ResourceCapabilities.register(event);
     }
 
     public record SetMultiplierPayload(int sourceType, int sourceIndex, int multiplier) implements CustomPacketPayload {

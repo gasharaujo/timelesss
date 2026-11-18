@@ -22,6 +22,13 @@ public final class TimelesssAccelerator {
     }
 
     public static boolean accelerateEntity(Player player, Entity entity, ItemStack stack) {
+        if (player.level().isClientSide() || entity == player || entity.isRemoved() || !net.gasharaujo.timelesss.resource.PersonalResources.canPay(player, stack)) return false;
+        boolean result = accelerateEntityUnchecked(player, entity, stack);
+        if (result) net.gasharaujo.timelesss.resource.PersonalResources.pay(player, stack);
+        return result;
+    }
+
+    private static boolean accelerateEntityUnchecked(Player player, Entity entity, ItemStack stack) {
         if (entity instanceof AbstractVillager villager) {
             villager.getOffers().forEach(MerchantOffer::resetUses);
             return true;
@@ -35,6 +42,13 @@ public final class TimelesssAccelerator {
     }
 
     public static boolean accelerateBlock(Player player, Level level, BlockPos pos, Direction face, ItemStack stack) {
+        if (level.isClientSide() || !net.gasharaujo.timelesss.resource.PersonalResources.canPay(player, stack)) return false;
+        boolean result = accelerateBlockUnchecked(player, level, pos, face, stack);
+        if (result) net.gasharaujo.timelesss.resource.PersonalResources.pay(player, stack);
+        return result;
+    }
+
+    private static boolean accelerateBlockUnchecked(Player player, Level level, BlockPos pos, Direction face, ItemStack stack) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return false;
         }

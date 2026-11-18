@@ -54,3 +54,16 @@ processResources {
     }
 }
 
+
+sourceSets.main.java.srcDir "../common/src/main/java"
+
+// Isolated headless integration tests; these sources are excluded from release JARs.
+if (project.hasProperty('timelesssSelfTest')) {
+    sourceSets.main.java.srcDir "../tests/java"
+    sourceSets.main.java.srcDir "src/selftest/java"
+    neoForge.runs.server {
+        gameDirectory = project.file(project.property('timelesssTestDir'))
+        systemProperty 'timelesss.selftest', 'true'
+        programArgument '--nogui'
+    }
+}

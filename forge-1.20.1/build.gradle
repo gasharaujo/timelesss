@@ -99,3 +99,18 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = 17
 }
+
+sourceSets.main.java.srcDir "../common/src/main/java"
+
+// Isolated headless integration tests; these sources are excluded from release JARs.
+if (project.hasProperty('timelesssSelfTest')) {
+    sourceSets.main.java.srcDir "../tests/java"
+    sourceSets.main.java.srcDir "src/selftest/java"
+    minecraft.runs.server {
+        workingDirectory project.file(project.property('timelesssTestDir'))
+        property 'timelesss.selftest', 'true'
+    }
+    if (file('test-mods/Mekanism-1.20.1-10.4.16.80.jar').exists()) {
+        dependencies { runtimeOnly fg.deobf('testmods:Mekanism-1.20.1:10.4.16.80') }
+    }
+}

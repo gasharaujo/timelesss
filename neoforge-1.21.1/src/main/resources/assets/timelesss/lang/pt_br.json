@@ -1,7 +1,7 @@
 {
   "item.timelesss.timelesss": "Timelesss",
   "screen.timelesss.title": "Multiplicador Timelesss",
-  "screen.timelesss.range": "Escolha um valor de 1x a 25x",
+  "screen.timelesss.range": "Escolha um valor de 1x a %sx",
   "screen.timelesss.value": "Multiplicador: %sx",
   "tooltip.timelesss.multiplier": "Multiplicador: %sx",
   "tooltip.timelesss.open": "Shift + clique direito no ar para configurar",
@@ -14,11 +14,11 @@
   "item.timelesss.time_wrench": "Time Wrench",
   "item.timelesss.battery": "Battery",
   "block.timelesss.battery_hub": "Battery Hub",
-  "tooltip.timelesss.battery_hub_insert": "Clique no Hub segurando uma Battery para adicionar 10.000 FE de capacidade",
+  "tooltip.timelesss.battery_hub_insert": "Clique com uma Battery para aumentar a capacidade do recurso configurado",
   "key.timelesss.time_binds": "Abrir Time Binds",
   "screen.timelesss.binds.title": "Time Binds",
-  "screen.timelesss.binds.energy": "Energia: %s / %s FE",
-  "screen.timelesss.binds.consumption": "Gasto atual: %s FE/s",
+  "screen.timelesss.binds.energy": "Recurso: %s / %s %s",
+  "screen.timelesss.binds.consumption": "Consumo atual: %s %s/s",
   "screen.timelesss.binds.delete_selected": "Excluir selecionado",
   "screen.timelesss.binds.empty": "Nenhum bloco vinculado",
   "tooltip.timelesss.wrench_target": "Alvo: %s [%s, %s, %s]",
@@ -27,7 +27,12 @@
   "message.timelesss.wrench_empty": "A Chave do Tempo não possui coordenadas armazenadas",
   "message.timelesss.bind_added": "Bloco adicionado ao Time Binds",
   "message.timelesss.bind_exists": "Este bloco já está vinculado",
-  "message.timelesss.not_owner": "Este bloco de energia pertence a outro jogador",
+  "message.timelesss.not_owner": "Este bloco pertence a outro jogador",
   "message.timelesss.battery_inserted": "Battery inserida: %s baterias, capacidade de %s FE",
-  "message.timelesss.battery_hub_status": "%s baterias | %s / %s FE"
+  "message.timelesss.battery_hub_status": "%s baterias | %s / %s FE",
+  "tooltip.timelesss.resource": "Recurso: %s | %s / %s",
+  "tooltip.timelesss.resource_none": "Consumo desativado",
+  "tooltip.timelesss.resource_xp": "Consome XP do jogador (%s XP por nível)",
+  "message.timelesss.resource_missing": "Recurso insuficiente: precisa de %s %s",
+  "message.timelesss.resource_status": "Armazenado: %s / %s %s"
 }

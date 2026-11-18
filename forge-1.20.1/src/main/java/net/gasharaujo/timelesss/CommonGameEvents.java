@@ -73,29 +73,13 @@ public final class CommonGameEvents {
             }
         }
 
-        if (distributor) {
-            if (!player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
-                TimelesssMod.sendTimeBinds(serverPlayer);
-            }
-            succeed(event);
-            return;
-        }
-
-        if (player.level().getBlockState(clickedPos).is(TimelesssMod.BATTERY_HUB.get())) {
-            if (!player.level().isClientSide()
-                && player.level().getBlockEntity(clickedPos) instanceof BatteryHubBlockEntity hub) {
-                if (!Objects.equals(hub.getOwner(), player.getUUID())) {
-                    player.sendSystemMessage(Component.translatable("message.timelesss.not_owner"));
-                } else if (stack.is(TimelesssMod.BATTERY.get()) && hub.insertBattery()) {
-                    if (!player.getAbilities().instabuild) {
-                        stack.shrink(1);
-                    }
-                    player.sendSystemMessage(Component.translatable("message.timelesss.battery_inserted",
-                        hub.getBatteryCount(), hub.getEnergyCapacity()));
-                } else {
-                    player.sendSystemMessage(Component.translatable("message.timelesss.battery_hub_status",
-                        hub.getBatteryCount(), hub.getEnergyStored(), hub.getEnergyCapacity()));
-                }
+        if (player.level().getBlockEntity(clickedPos) instanceof net.gasharaujo.timelesss.block.entity.ResourceBlockEntity resourceBlock) {
+            if (!player.level().isClientSide()) {
+                boolean fueling=stack.is(TimelesssMod.BATTERY.get()) || player.isShiftKeyDown()
+                    || resourceBlock.resources().type()==net.gasharaujo.timelesss.resource.ResourceType.FLUID
+                    || resourceBlock.resources().type()==net.gasharaujo.timelesss.resource.ResourceType.ITEM;
+                if(fueling || !distributor) net.gasharaujo.timelesss.resource.ResourceInteraction.block(player,event.getHand(),resourceBlock);
+                else if(player instanceof ServerPlayer serverPlayer) TimelesssMod.sendTimeBinds(serverPlayer);
             }
             succeed(event);
         }

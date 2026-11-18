@@ -1,14 +1,19 @@
 # Just Gash Timelesss
 
-Mod de Gasharaujo para três versões do Minecraft:
+Mod de Gasharaujo, versão **2.5**, para três versões do Minecraft:
 
 - `neoforge-26.1.2`: Minecraft 26.1.2 + NeoForge
 - `neoforge-1.21.1`: Minecraft 1.21.1 + NeoForge
 - `forge-1.20.1`: Minecraft 1.20.1 + Forge
 
 O item `timelesss:timelesss` abre a tela de seleção de multiplicador com
-Shift + clique direito no ar. O valor inteiro de 1x a 25x é salvo no próprio
+Shift + clique direito no ar. O valor inteiro de 1x até o máximo configurado (25x por padrão) é salvo no próprio
 item e sincronizado com o servidor.
+
+A versão 2.5 permite configurar os máximos, o combustível da rede (FE, fluido,
+gás do Mekanism ou item), capacidades e consumo pessoal (nenhum, fluido,
+durabilidade, XP, FE ou tempo acumulado), além das curvas padrão e linear.
+Veja os padrões, exemplos e instruções em [Configuração 2.5](docs/CONFIG-2.5.md).
 
 ## Uso
 
@@ -31,10 +36,10 @@ hotbar e restante do inventário.
 - `timelesss:time_wrench` armazena dimensão e coordenadas com Shift + clique
   direito. Clique normal ou Shift + clique em um distribuidor próprio adiciona
   o alvo armazenado à rede.
-- `F12` abre os Vínculos Temporais. Cada alvo aceita de 0x a 50x; 1x acrescenta
+- `F12` abre os Vínculos Temporais. Cada alvo aceita de 0x até o máximo configurado (50x por padrão); 1x acrescenta
   1 tick extra em cada tick do servidor (20 por segundo), enquanto 0x o
   desativa. A tela mostra o gasto atual e permite selecionar e excluir vínculos.
-- O custo é `100 * x² FE/s`. O servidor verifica e desconta a energia da rede
+- Por padrão, o custo é `100 * x² FE/s`. O servidor verifica e desconta a energia da rede
   inteira uma vez por segundo; se faltar energia para o conjunto, nada é
   acelerado durante esse segundo.
 - O processamento ocorre no evento de tick do `ServerLevel` e somente para
@@ -48,7 +53,7 @@ hotbar e restante do inventário.
   disponível para o Time Binds. As quatro Batteries da receita fornecem a
   capacidade inicial de 40.000 FE.
 - Clique no Battery Hub segurando uma Battery para consumi-la e acrescentar
-  10.000 FE de capacidade. O bloco aceita FE pelas capabilities do loader e sua
+  10.000 FE de capacidade. O bloco aceita o recurso configurado pelas capabilities do loader/Mekanism e sua
   textura acompanha as faixas de carga vazia, 50%, 75% e cheia.
 
 Receita do distribuidor: netherita, estrela do Nether, blocos de redstone,
@@ -62,3 +67,5 @@ iniciar o cliente.
 
 Use os arquivos `.bat` da raiz para abrir cada ambiente de desenvolvimento ou
 para gerar os três JARs. Os artefatos finais são copiados para `builds`.
+
+Os testes sem interface podem ser repetidos com `tools/Test-2.5.ps1`.

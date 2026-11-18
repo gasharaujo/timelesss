@@ -44,7 +44,7 @@ import net.minecraftforge.registries.RegistryObject;
 @Mod(TimelesssMod.MOD_ID)
 public final class TimelesssMod {
     public static final String MOD_ID = "timelesss";
-    private static final String NETWORK_VERSION = "4";
+    private static final String NETWORK_VERSION = "5";
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
@@ -77,7 +77,7 @@ public final class TimelesssMod {
         "time_wrench", () -> new TimeWrenchItem(new Item.Properties().stacksTo(1).fireResistant())
     );
     public static final RegistryObject<Item> BATTERY = ITEMS.register(
-        "battery", () -> new Item(new Item.Properties())
+        "battery", () -> new net.gasharaujo.timelesss.item.BatteryItem(new Item.Properties())
     );
     public static final RegistryObject<Item> BATTERY_HUB_ITEM = ITEMS.register(
         "battery_hub", () -> new BatteryHubItem(BATTERY_HUB.get(), new Item.Properties())
@@ -92,6 +92,7 @@ public final class TimelesssMod {
 
     public TimelesssMod() {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+        net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.SERVER, ResourceConfig.SPECIFICATION);
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
