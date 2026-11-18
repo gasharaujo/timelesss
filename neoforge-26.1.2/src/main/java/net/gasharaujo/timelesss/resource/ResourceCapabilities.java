@@ -14,16 +14,16 @@ public final class ResourceCapabilities {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, TimelesssMod.BATTERY_HUB_BLOCK_ENTITY.get(), (be,side) -> be.getFluidHandler());
         event.registerBlockEntity(Capabilities.Item.BLOCK, TimelesssMod.TIME_DISTRIBUTOR_BLOCK_ENTITY.get(), (be,side) -> be.getItemHandler());
         event.registerBlockEntity(Capabilities.Item.BLOCK, TimelesssMod.BATTERY_HUB_BLOCK_ENTITY.get(), (be,side) -> be.getItemHandler());
-        event.registerItem(Capabilities.Energy.ITEM, (stack,access) -> ResourceStorage.item(stack).type()==ResourceType.ENERGY ? new ResourceHandlers(access).energy() : null, TimelesssMod.TIMELESSS.get(), TimelesssMod.BATTERY.get());
-        event.registerItem(Capabilities.Fluid.ITEM, (stack,access) -> ResourceStorage.item(stack).type()==ResourceType.FLUID ? new ResourceHandlers(access).fluid() : null, TimelesssMod.TIMELESSS.get(), TimelesssMod.BATTERY.get());
-        event.registerItem(Capabilities.Item.ITEM, (stack,access) -> ResourceStorage.item(stack).type()==ResourceType.ITEM ? new ResourceHandlers(access).items() : null, TimelesssMod.BATTERY.get());
+        event.registerItem(Capabilities.Energy.ITEM, (stack,access) -> ResourceStorage.item(stack).enabled(ResourceType.ENERGY) ? new ResourceHandlers(access).energy() : null, TimelesssMod.TIMELESSS.get(), TimelesssMod.BATTERY.get());
+        event.registerItem(Capabilities.Fluid.ITEM, (stack,access) -> ResourceStorage.item(stack).enabled(ResourceType.FLUID) ? new ResourceHandlers(access).fluid() : null, TimelesssMod.TIMELESSS.get(), TimelesssMod.BATTERY.get());
+        event.registerItem(Capabilities.Item.ITEM, (stack,access) -> ResourceStorage.item(stack).enabled(ResourceType.ITEM) ? new ResourceHandlers(access).items() : null, TimelesssMod.BATTERY.get());
         gas(event);
     }
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static void gas(RegisterCapabilitiesEvent event) {
         Object block=MekanismBridge.blockCapability(), item=MekanismBridge.itemCapability();
         if(block instanceof BlockCapability cap) {
-            ICapabilityProvider provider=(be,side) -> { ResourceStorage s=((ResourceBlockEntity)be).resources(); return s.type()==ResourceType.GAS ? MekanismBridge.handler(s) : null; };
+            ICapabilityProvider provider=(be,side) -> { ResourceStorage s=((ResourceBlockEntity)be).resources(); return s.enabled(ResourceType.GAS) ? MekanismBridge.handler(s) : null; };
             event.registerBlockEntity(cap, TimelesssMod.TIME_DISTRIBUTOR_BLOCK_ENTITY.get(), provider);
             event.registerBlockEntity(cap, TimelesssMod.BATTERY_HUB_BLOCK_ENTITY.get(), provider);
         }

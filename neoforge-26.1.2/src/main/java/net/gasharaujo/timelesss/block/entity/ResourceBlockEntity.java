@@ -27,9 +27,9 @@ public abstract class ResourceBlockEntity extends BlockEntity implements PlayerE
     public ResourceStorage resources() { return resources; }
     public UUID getOwner() { return owner; }
     public void setOwner(UUID owner) { this.owner=owner; setChanged(); }
-    public net.neoforged.neoforge.transfer.energy.EnergyHandler getEnergyHandler() { return resources.type()==ResourceType.ENERGY ? handlers.energy() : null; }
-    public net.neoforged.neoforge.transfer.ResourceHandler<net.neoforged.neoforge.transfer.fluid.FluidResource> getFluidHandler() { return resources.type()==ResourceType.FLUID ? handlers.fluid() : null; }
-    public net.neoforged.neoforge.transfer.ResourceHandler<net.neoforged.neoforge.transfer.item.ItemResource> getItemHandler() { return resources.type()==ResourceType.ITEM ? handlers.items() : null; }
+    public net.neoforged.neoforge.transfer.energy.EnergyHandler getEnergyHandler() { return resources.enabled(ResourceType.ENERGY) ? handlers.energy() : null; }
+    public net.neoforged.neoforge.transfer.ResourceHandler<net.neoforged.neoforge.transfer.fluid.FluidResource> getFluidHandler() { return resources.enabled(ResourceType.FLUID) ? handlers.fluid() : null; }
+    public net.neoforged.neoforge.transfer.ResourceHandler<net.neoforged.neoforge.transfer.item.ItemResource> getItemHandler() { return resources.enabled(ResourceType.ITEM) ? handlers.items() : null; }
     @Override protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         output.store("resources25", CompoundTag.CODEC, resourceData);

@@ -14,7 +14,7 @@ public final class BatteryItem extends Item {
     }
     @Override public void appendHoverText(ItemStack stack, TooltipContext context, java.util.List<Component> tooltip, TooltipFlag flag) {
         var s=net.gasharaujo.timelesss.resource.ResourceStorage.item(stack);
-        tooltip.add(Component.translatable("tooltip.timelesss.resource",s.type().name(),s.amount(s.type()),s.capacity(s.type())));
+        for(var type:s.types()) tooltip.add(Component.translatable("tooltip.timelesss.resource",type.name(),s.amount(type),s.capacity(type)));
     }
 
 }

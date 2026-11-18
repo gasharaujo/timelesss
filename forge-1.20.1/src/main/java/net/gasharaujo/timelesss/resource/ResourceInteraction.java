@@ -19,21 +19,19 @@ public final class ResourceInteraction {
         if(block instanceof BatteryHubBlockEntity hub && held.is(TimelesssMod.BATTERY.get())) {
             if(!hub.insertBattery()) return;
             ResourceStorage source=ResourceStorage.item(held), target=hub.resources();
-            long moved=target.insert(target.type(),source.amount(source.type()),false);
-            source.extract(source.type(),moved,false);
+            source.transferTo(target);
             held.shrink(1);
         } else if(held.is(TimelesssMod.BATTERY.get())) {
             ResourceStorage source=ResourceStorage.item(held), target=block.resources();
-            long moved=target.insert(target.type(),source.amount(source.type()),false);
-            source.extract(source.type(),moved,false);
+            source.transferTo(target);
         } else fill(player,hand,block.resources());
-        player.sendSystemMessage(Component.translatable("message.timelesss.resource_status",block.getResourceStored(),block.getResourceCapacity(),ResourceConfig.unit()));
+        for(ResourceType type:block.resources().types()) player.sendSystemMessage(Component.translatable("message.timelesss.resource_status",block.resources().amount(type),block.resources().capacity(type),type.name()+" "+ResourceConfig.unit(type)));
     }
     public static boolean fill(Player player, InteractionHand hand, ResourceStorage s) {
-        if(s.type()==ResourceType.FLUID) return net.minecraftforge.fluids.FluidUtil.interactWithFluidHandler(player, hand, ResourceHandlers.fluid(s, ItemStack.EMPTY));
+        if(s.enabled(ResourceType.FLUID) && !s.validItem(player.getItemInHand(hand))) return net.minecraftforge.fluids.FluidUtil.interactWithFluidHandler(player, hand, ResourceHandlers.fluid(s, ItemStack.EMPTY));
         ItemStack held=player.getItemInHand(hand);
-        if(s.type()==ResourceType.ITEM && s.validItem(held)) {
-            int moved=(int)s.insert(ResourceType.ITEM,held.getCount(),false);
+        if(s.validItem(held)) {
+            int moved=(int)s.insert(ResourceType.ITEM,ResourceStorage.itemId(held),held.getCount(),false);
             held.shrink(moved);return moved>0;
         }
         return false;
@@ -44,10 +42,7 @@ public final class ResourceInteraction {
         ResourceStorage target=ResourceStorage.item(stack);
         if(held.is(TimelesssMod.BATTERY.get())) {
             ResourceStorage battery=ResourceStorage.item(held);
-            if(battery.type()==target.type()) {
-                long moved=target.insert(target.type(),battery.amount(battery.type()),false);
-                battery.extract(battery.type(),moved,false);
-            }
+            battery.transferTo(target);
         } else fill(player,source,target);
     }
 }

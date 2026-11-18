@@ -44,6 +44,14 @@ max-players=1
             Copy-Item -LiteralPath $mekanism.FullName -Destination (Join-Path $testPath "mods\$($mekanism.Name)") -Force
         }
 
+        $configured = Get-ChildItem -LiteralPath (Join-Path $instancePath 'mods') -Filter 'configured-*.jar' | Select-Object -First 1
+        if ($configured -and $version -eq '20.1' -and $configured.Name -eq 'configured-forge-1.20.1-2.2.3.jar') {
+            Copy-Item -LiteralPath $configured.FullName -Destination (Join-Path $projectPath "test-mods\$($configured.Name)") -Force
+        } elseif ($configured -and $version -ne '20.1') {
+            New-Item -ItemType Directory -Force -Path (Join-Path $testPath 'mods') | Out-Null
+            Copy-Item -LiteralPath $configured.FullName -Destination (Join-Path $testPath "mods\$($configured.Name)") -Force
+        }
+
         $env:JAVA_HOME = $previousJava
         if ($version -eq '26.1.2' -and (Test-Path -LiteralPath $Jdk25)) { $env:JAVA_HOME = $Jdk25 }
         $gradleArgs = @('runServer', '-PtimelesssSelfTest', "-PtimelesssTestDir=$testPath", '--console=plain')
@@ -57,6 +65,6 @@ max-players=1
         if (-not (Select-String -LiteralPath $logPath -Pattern 'TIMELESSS_SELFTEST_PASSED' -Quiet)) {
             throw "Teste falhou: $logPath"
         }
-        Select-String -LiteralPath $logPath -Pattern 'TIMELESSS_SELFTEST_PASSED' | ForEach-Object { "$version`: $($_.Line)" }
+        Select-String -LiteralPath $logPath -Pattern 'TIMELESSS_SELFTEST_PASSED|TIMELESSS_MULTI_SELFTEST_PASSED|CONFIGURED_MODEL_TEST_PASSED' | ForEach-Object { "$version`: $($_.Line)" }
     }
 } finally { $env:JAVA_HOME = $previousJava }

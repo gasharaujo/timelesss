@@ -29,6 +29,12 @@ public final class PersonalResources {
         };
     }
     public static boolean canPay(Player player, ItemStack stack) {
+        ResourceType type=ResourceConfig.personalResource();
+        if(type==ResourceType.FLUID || type==ResourceType.ENERGY) {
+            if(fuelPlan(stack)!=null) return true;
+            player.sendSystemMessage(Component.translatable("message.timelesss.resource_missing",ResourceConfig.cost(type,TimelesssItem.getMultiplier(stack)),type.name()));
+            return false;
+        }
         long cost=ResourceConfig.cost(ResourceConfig.personalResource(),TimelesssItem.getMultiplier(stack));
         if(available(player,stack)>=cost && (ResourceConfig.personalResource()!=ResourceType.XP || cost<=Integer.MAX_VALUE)) return true;
         player.sendSystemMessage(Component.translatable("message.timelesss.resource_missing",cost,ResourceConfig.personalResource().name()));
@@ -38,6 +44,10 @@ public final class PersonalResources {
         ResourceType type=ResourceConfig.personalResource();
         long cost=ResourceConfig.cost(type,TimelesssItem.getMultiplier(stack));
         ResourceStorage s=ResourceStorage.item(stack);
+        if(type==ResourceType.FLUID || type==ResourceType.ENERGY) {
+            var plan=fuelPlan(stack);if(plan!=null) plan.apply(s::credit);
+            player.getInventory().setChanged();return;
+        }
         if(type==ResourceType.NONE || cost==0) return;
         if(type==ResourceType.XP) player.giveExperiencePoints(-(int)cost);
         else if(type==ResourceType.DURABILITY) {
@@ -45,6 +55,10 @@ public final class PersonalResources {
             if(s.amount(type)>=s.capacity(type)) stack.shrink(1);
         } else s.extract(type,cost,false);
         player.getInventory().setChanged();
+    }
+    private static FuelPayment.Plan fuelPlan(ItemStack stack) {
+        ResourceStorage s=ResourceStorage.item(stack);
+        return FuelPayment.plan(java.util.List.of(s),s.types(),type -> ResourceConfig.cost(type,TimelesssItem.getMultiplier(stack)),s::credit);
     }
     public static void recharge(Player player) {
         if(ResourceConfig.personalResource()!=ResourceType.TIME) return;

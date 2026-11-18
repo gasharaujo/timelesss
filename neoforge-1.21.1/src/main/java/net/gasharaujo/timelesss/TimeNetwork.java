@@ -120,30 +120,16 @@ public final class TimeNetwork {
     }
 
     private static void payForNextSecond(ServerPlayer player) {
-        long cost = 0L;
-        for (Bind bind : getBinds(player)) {
-            cost = net.gasharaujo.timelesss.resource.ResourceMath.add(cost, ResourceConfig.cost(ResourceConfig.networkResource(), bind.multiplier));
-        }
-        CompoundTag network = data(player);
-        List<PlayerEnergyNode> distributors = validEnergyNodes(player, true);
-        if (distributors.isEmpty()) { network.putInt("paid_ticks", 0); return; }
-        if (cost == 0L) { network.putInt("paid_ticks", 20); return; }
-
-        long available = distributors.stream().mapToLong(PlayerEnergyNode::getResourceStored).sum();
-        if (available < cost) {
-            network.putInt("paid_ticks", 0);
-            return;
-        }
-
-        long remaining = cost;
-        for (PlayerEnergyNode distributor : distributors) {
-            long extracted = distributor.extractResource(remaining);
-            remaining -= extracted;
-            if (remaining == 0L) {
-                break;
-            }
-        }
-        network.putInt("paid_ticks", 20);
+        CompoundTag network=data(player);
+        List<net.gasharaujo.timelesss.resource.ResourceStorage> stores=validEnergyNodes(player,true).stream().map(PlayerEnergyNode::resources).toList();
+        if(stores.isEmpty()) { network.putInt("paid_ticks",0);return; }
+        List<Bind> binds=getBinds(player);
+        var plan=net.gasharaujo.timelesss.resource.FuelPayment.plan(stores,ResourceConfig.networkResources(),type -> {
+            long cost=0;
+            for(Bind bind:binds) cost=net.gasharaujo.timelesss.resource.ResourceMath.add(cost,ResourceConfig.cost(type,bind.multiplier));
+            return cost;
+        },key -> network.getString(key));
+        network.putInt("paid_ticks",plan!=null && plan.apply(network::putString) ? 20 : 0);
     }
 
     public static String snapshot(ServerPlayer player) {
@@ -153,7 +139,8 @@ public final class TimeNetwork {
         StringBuilder result = new StringBuilder().append(energy).append('|')
             .append(capacity).append('|').append(ResourceConfig.unit()).append('|')
             .append(maxMultiplier()).append('|').append(ResourceConfig.value(ResourceConfig.CURVE).name()).append('|')
-            .append(ResourceConfig.cost(ResourceConfig.networkResource(),1)).append('\n');
+            .append(ResourceConfig.cost(ResourceConfig.networkResource(),1)).append('|')
+            .append(net.gasharaujo.timelesss.resource.NetworkResourceView.snapshot(distributors.stream().map(PlayerEnergyNode::resources).toList())).append('\n');
         MinecraftServer server = player.getServer();
         for (Bind bind : getBinds(player)) {
             String blockId = "minecraft:air";

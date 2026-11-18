@@ -14,7 +14,7 @@ public final class BatteryItem extends Item {
     }
     @Override public void appendHoverText(ItemStack stack, Level level, java.util.List<Component> tooltip, TooltipFlag flag) {
         var s=net.gasharaujo.timelesss.resource.ResourceStorage.item(stack);
-        tooltip.add(Component.translatable("tooltip.timelesss.resource",s.type().name(),s.amount(s.type()),s.capacity(s.type())));
+        for(var type:s.types()) tooltip.add(Component.translatable("tooltip.timelesss.resource",type.name(),s.amount(type),s.capacity(type)));
     }
     @Override public net.minecraftforge.common.capabilities.ICapabilityProvider initCapabilities(ItemStack stack, net.minecraft.nbt.CompoundTag tag) {
         return new net.gasharaujo.timelesss.resource.ResourceCapabilities(stack);

@@ -26,9 +26,9 @@ public abstract class ResourceBlockEntity extends BlockEntity implements PlayerE
     public ResourceStorage resources() { return resources; }
     public UUID getOwner() { return owner; }
     public void setOwner(UUID owner) { this.owner=owner; setChanged(); }
-    public net.neoforged.neoforge.energy.IEnergyStorage getEnergyHandler() { return resources.type()==ResourceType.ENERGY ? ResourceHandlers.energy(resources) : null; }
-    public net.neoforged.neoforge.fluids.capability.IFluidHandler getFluidHandler() { return resources.type()==ResourceType.FLUID ? ResourceHandlers.fluid(resources, ItemStack.EMPTY) : null; }
-    public net.neoforged.neoforge.items.IItemHandler getItemHandler() { return resources.type()==ResourceType.ITEM ? ResourceHandlers.items(resources) : null; }
+    public net.neoforged.neoforge.energy.IEnergyStorage getEnergyHandler() { return resources.enabled(ResourceType.ENERGY) ? ResourceHandlers.energy(resources) : null; }
+    public net.neoforged.neoforge.fluids.capability.IFluidHandler getFluidHandler() { return resources.enabled(ResourceType.FLUID) ? ResourceHandlers.fluid(resources, ItemStack.EMPTY) : null; }
+    public net.neoforged.neoforge.items.IItemHandler getItemHandler() { return resources.enabled(ResourceType.ITEM) ? ResourceHandlers.items(resources) : null; }
     @Override protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put("resources25",resourceData.copy());

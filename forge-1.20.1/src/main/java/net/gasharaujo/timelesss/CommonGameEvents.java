@@ -76,8 +76,8 @@ public final class CommonGameEvents {
         if (player.level().getBlockEntity(clickedPos) instanceof net.gasharaujo.timelesss.block.entity.ResourceBlockEntity resourceBlock) {
             if (!player.level().isClientSide()) {
                 boolean fueling=stack.is(TimelesssMod.BATTERY.get()) || player.isShiftKeyDown()
-                    || resourceBlock.resources().type()==net.gasharaujo.timelesss.resource.ResourceType.FLUID
-                    || resourceBlock.resources().type()==net.gasharaujo.timelesss.resource.ResourceType.ITEM;
+                    || resourceBlock.resources().enabled(net.gasharaujo.timelesss.resource.ResourceType.FLUID)
+                    || resourceBlock.resources().enabled(net.gasharaujo.timelesss.resource.ResourceType.ITEM);
                 if(fueling || !distributor) net.gasharaujo.timelesss.resource.ResourceInteraction.block(player,event.getHand(),resourceBlock);
                 else if(player instanceof ServerPlayer serverPlayer) TimelesssMod.sendTimeBinds(serverPlayer);
             }

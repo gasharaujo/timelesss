@@ -34,9 +34,9 @@ public abstract class ResourceBlockEntity extends BlockEntity implements PlayerE
     public ResourceStorage resources() { return resources; }
     public UUID getOwner() { return owner; }
     public void setOwner(UUID owner) { this.owner=owner; setChanged(); }
-    public net.minecraftforge.energy.IEnergyStorage getEnergyHandler() { return resources.type()==ResourceType.ENERGY ? ResourceHandlers.energy(resources) : null; }
-    public net.minecraftforge.fluids.capability.IFluidHandler getFluidHandler() { return resources.type()==ResourceType.FLUID ? ResourceHandlers.fluid(resources, ItemStack.EMPTY) : null; }
-    public net.minecraftforge.items.IItemHandler getItemHandler() { return resources.type()==ResourceType.ITEM ? ResourceHandlers.items(resources) : null; }
+    public net.minecraftforge.energy.IEnergyStorage getEnergyHandler() { return resources.enabled(ResourceType.ENERGY) ? ResourceHandlers.energy(resources) : null; }
+    public net.minecraftforge.fluids.capability.IFluidHandler getFluidHandler() { return resources.enabled(ResourceType.FLUID) ? ResourceHandlers.fluid(resources, ItemStack.EMPTY) : null; }
+    public net.minecraftforge.items.IItemHandler getItemHandler() { return resources.enabled(ResourceType.ITEM) ? ResourceHandlers.items(resources) : null; }
     @Override protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.put("resources25",resourceData.copy());
@@ -49,10 +49,10 @@ public abstract class ResourceBlockEntity extends BlockEntity implements PlayerE
         owner=tag.hasUUID("owner") ? tag.getUUID("owner") : null;
     }
     @Override public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-        if(resources.type()==ResourceType.ENERGY && cap==ForgeCapabilities.ENERGY) return energyCap.cast();
-        if(resources.type()==ResourceType.FLUID && cap==ForgeCapabilities.FLUID_HANDLER) return fluidCap.cast();
-        if(resources.type()==ResourceType.ITEM && cap==ForgeCapabilities.ITEM_HANDLER) return itemCap.cast();
-        if(resources.type()==ResourceType.GAS && cap==MekanismBridge.blockCapability()) return gasCap.cast();
+        if(resources.enabled(ResourceType.ENERGY) && cap==ForgeCapabilities.ENERGY) return energyCap.cast();
+        if(resources.enabled(ResourceType.FLUID) && cap==ForgeCapabilities.FLUID_HANDLER) return fluidCap.cast();
+        if(resources.enabled(ResourceType.ITEM) && cap==ForgeCapabilities.ITEM_HANDLER) return itemCap.cast();
+        if(resources.enabled(ResourceType.GAS) && cap==MekanismBridge.blockCapability()) return gasCap.cast();
         return super.getCapability(cap,side);
     }
     @Override public void invalidateCaps() { super.invalidateCaps(); energyCap.invalidate();fluidCap.invalidate();itemCap.invalidate();gasCap.invalidate(); }

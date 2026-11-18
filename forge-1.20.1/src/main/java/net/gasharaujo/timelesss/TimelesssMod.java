@@ -44,7 +44,7 @@ import net.minecraftforge.registries.RegistryObject;
 @Mod(TimelesssMod.MOD_ID)
 public final class TimelesssMod {
     public static final String MOD_ID = "timelesss";
-    private static final String NETWORK_VERSION = "5";
+    private static final String NETWORK_VERSION = "6";
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
@@ -93,6 +93,7 @@ public final class TimelesssMod {
     public TimelesssMod() {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(net.minecraftforge.fml.config.ModConfig.Type.SERVER, ResourceConfig.SPECIFICATION);
+        modBus.addListener((net.minecraftforge.fml.event.config.ModConfigEvent.Loading event) -> { if(event.getConfig().getSpec()==ResourceConfig.SPECIFICATION) ResourceConfig.normalize(); });
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);

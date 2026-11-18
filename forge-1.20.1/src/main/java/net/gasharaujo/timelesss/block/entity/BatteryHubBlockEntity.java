@@ -25,8 +25,11 @@ public final class BatteryHubBlockEntity extends ResourceBlockEntity {
     @Override protected void resourceChanged() {
         super.resourceChanged();
         if(level==null || level.isClientSide()) return;
-        long capacity=getResourceCapacity(), stored=getResourceStored();
-        int charge=stored>=capacity && capacity>0 ? 3 : stored*4L>=capacity*3L && capacity>0 ? 2 : stored*2L>=capacity && capacity>0 ? 1 : 0;
+        int charge=0;
+        for(var type:resources().types()) {
+            long capacity=resources().capacity(type),stored=resources().amount(type);
+            charge=Math.max(charge,stored>=capacity && capacity>0 ? 3 : stored*4L>=capacity*3L && capacity>0 ? 2 : stored*2L>=capacity && capacity>0 ? 1 : 0);
+        }
         BlockState state=getBlockState();
         if(state.hasProperty(BatteryHubBlock.CHARGE) && state.getValue(BatteryHubBlock.CHARGE)!=charge)
             level.setBlock(worldPosition,state.setValue(BatteryHubBlock.CHARGE,charge),Block.UPDATE_CLIENTS);

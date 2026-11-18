@@ -1,10 +1,22 @@
 # Validação 2.5 — 18/11/2026
 
-| Ambiente | Resultado dos cenários principais | Integração opcional |
-| --- | --- | --- |
-| Forge 1.20.1 / 47.4.10 | 121 verificações aprovadas | Mekanism 10.4.16.80, Curios e mods de desenvolvimento carregados |
-| NeoForge 1.21.1 / 21.1.248 | 121 verificações aprovadas | Mekanism 10.7.19 carregado |
-| NeoForge 26.1.2 / 26.1.2.98 | 118 verificações aprovadas | Sem Mekanism; carregamento e ausência da capability de gás verificados |
+| Ambiente | Cenários anteriores | Novos cenários de múltiplos recursos | Integração opcional |
+| --- | --- | --- | --- |
+| Forge 1.20.1 / 47.4.10 | 121 aprovados | 82 aprovados | Mekanism 10.4.16.80 e Configured 2.2.3 |
+| NeoForge 1.21.1 / 21.1.248 | 121 aprovados | 82 aprovados | Mekanism 10.7.19 e Configured 2.6.3 |
+| NeoForge 26.1.2 / 26.1.2.98 | 118 aprovados | 79 aprovados | Configured 2.7.5, sem Mekanism |
+
+Total: **603 verificações principais aprovadas**, além dos testes dos adaptadores
+e dos modelos de edição do Configured. Estes modelos foram instanciados com as
+classes do próprio Configured, validando conversão de listas, nomes traduzíveis,
+validação dos valores e edição sem perder o formato das linhas.
+
+Os novos cenários cobrem recursos alternativos em prioridade, vários materiais
+em tanques/slots compartilhados, IDs separados, conservação dos saldos da 2.5
+anterior, listas de pares e tabelas associadas validadas pelo loader, modificadores
+fracionários com crédito persistente, rollback de cobrança parcial, transferência
+de vários recursos por Battery, consumo pessoal com outro fluido, múltiplos
+tanques do Mekanism e os dados de cada alternativa enviados à tela F12.
 
 Além desses cenários, os adaptadores de cada versão verificaram as capabilities
 reais dos blocos e da Battery, filtros de item/fluido, endereçamento de slots,
@@ -30,7 +42,8 @@ no Forge. Os JARs foram inspecionados: versão 2.5, classes comuns presentes,
 executor de testes ausente e dependências obrigatórias apenas do loader e do
 Minecraft. Os JARs foram copiados para `builds` e para as três pastas `mods`, com
 conferência SHA-256. As versões anteriores foram preservadas com o sufixo
-`.disabled-before-2.5`.
+`.disabled-before-2.5` e `.disabled-before-multiple-resources`.
 
-Logs locais: `.test20.log`, `.test21.log`, `.test26.log` e `.release20.log`,
-`.release21.log`, `.release26.log` (ignorados pelo Git).
+Logs da atualização: `.multi-test20.log`, `.multi-test21.log`, `.multi-test26.log`
+e `.multi-release20.log`, `.multi-release21.log`, `.multi-release26.log`
+(ignorados pelo Git).
