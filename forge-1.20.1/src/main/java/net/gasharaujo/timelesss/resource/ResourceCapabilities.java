@@ -17,10 +17,10 @@ public final class ResourceCapabilities implements ICapabilityProvider {
         gas=LazyOptional.of(() -> MekanismBridge.handler(storage));
     }
     @Override public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-        if(storage.type()==ResourceType.ENERGY && cap==ForgeCapabilities.ENERGY) return energy.cast();
-        if(storage.type()==ResourceType.FLUID && cap==ForgeCapabilities.FLUID_HANDLER_ITEM) return fluid.cast();
-        if(storage.type()==ResourceType.ITEM && cap==ForgeCapabilities.ITEM_HANDLER) return items.cast();
-        if(storage.type()==ResourceType.GAS && cap==MekanismBridge.itemCapability()) return gas.cast();
+        if(storage.enabled(ResourceType.ENERGY) && cap==ForgeCapabilities.ENERGY) return energy.cast();
+        if(storage.enabled(ResourceType.FLUID) && cap==ForgeCapabilities.FLUID_HANDLER_ITEM) return fluid.cast();
+        if(storage.enabled(ResourceType.ITEM) && cap==ForgeCapabilities.ITEM_HANDLER) return items.cast();
+        if(storage.enabled(ResourceType.GAS) && cap==MekanismBridge.itemCapability()) return gas.cast();
         return LazyOptional.empty();
     }
 }

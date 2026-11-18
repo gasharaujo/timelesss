@@ -81,6 +81,7 @@ public final class TimelesssMod {
 
     public TimelesssMod(IEventBus modBus, net.neoforged.fml.ModContainer container) {
         container.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER, ResourceConfig.SPECIFICATION);
+        modBus.addListener((net.neoforged.fml.event.config.ModConfigEvent.Loading event) -> { if(event.getConfig().getSpec()==ResourceConfig.SPECIFICATION) ResourceConfig.normalize(); });
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
@@ -109,7 +110,7 @@ public final class TimelesssMod {
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
-        var registrar = event.registrar("5");
+        var registrar = event.registrar("6");
         registrar.playToServer(
             SetMultiplierPayload.TYPE,
             SetMultiplierPayload.STREAM_CODEC,

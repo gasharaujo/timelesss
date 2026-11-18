@@ -44,42 +44,60 @@ public final class ResourceHandlers {
     }
     public ResourceHandler<FluidResource> fluid() {
         return new FuelHandler<FluidResource>(ResourceType.FLUID) {
-            protected FluidResource fuel() { return FluidResource.of(ResourceStorage.fuelFluid()); }
+            protected FluidResource resource(String id) { return FluidResource.of(ResourceStorage.fuelFluid(id)); }
+            protected String id(FluidResource resource) { return ResourceStorage.fluidId(resource.getFluid()); }
             protected FluidResource empty() { return FluidResource.EMPTY; }
         };
     }
     public ResourceHandler<ItemResource> items() {
         return new FuelHandler<ItemResource>(ResourceType.ITEM) {
-            protected ItemResource fuel() { return ItemResource.of(ResourceStorage.fuelItem()); }
+            protected ItemResource resource(String id) { return ItemResource.of(ResourceStorage.fuelItem(id)); }
+            protected String id(ItemResource resource) { return ResourceStorage.itemId(resource.toStack()); }
             protected ItemResource empty() { return ItemResource.EMPTY; }
         };
     }
     private abstract class FuelHandler<T extends Resource> implements ResourceHandler<T> {
         private final ResourceType type;
-        FuelHandler(ResourceType type) { this.type = type; }
-        protected abstract T fuel();
+        FuelHandler(ResourceType type) { this.type=type; }
+        protected abstract T resource(String id);
+        protected abstract String id(T resource);
         protected abstract T empty();
-        private void check(int index) { java.util.Objects.checkIndex(index, size()); }
-        public int size() { return type == ResourceType.ITEM ? current().slots() : 1; }
-        public T getResource(int index) { return getAmountAsLong(index) > 0 ? fuel() : empty(); }
-        public long getAmountAsLong(int index) { check(index); return type == ResourceType.ITEM ? current().slotAmount(index) : current().amount(type); }
-        public long getCapacityAsLong(int index, T resource) { check(index); return type == ResourceType.ITEM ? current().stackLimit() : current().capacity(type); }
-        public boolean isValid(int index, T resource) { check(index); return current().type() == type && !resource.isEmpty() && resource.equals(fuel()); }
-        public int insert(int index, T resource, int amount, TransactionContext transaction) {
-            if (amount <= 0 || !isValid(index, resource)) return 0;
-            return change(transaction, s -> {
-                if (type != ResourceType.ITEM) return (int)s.insert(type, amount, false);
-                int n = Math.min(amount, s.stackLimit() - s.slotAmount(index));
-                if (n > 0) s.setSlot(index, s.slotAmount(index) + n);
+        private void check(int index) { java.util.Objects.checkIndex(index,size()); }
+        private String storedId(int index) { check(index);return type==ResourceType.ITEM ? current().slotId(index) : current().tankId(type,index); }
+        public int size() { return type==ResourceType.ITEM ? current().slots() : current().tanks(type); }
+        public T getResource(int index) { return getAmountAsLong(index)>0 ? resource(storedId(index)) : empty(); }
+        public long getAmountAsLong(int index) { String id=storedId(index);return type==ResourceType.ITEM ? current().slotAmount(index) : current().amount(type,id); }
+        public long getCapacityAsLong(int index,T offered) {
+            check(index);
+            return type==ResourceType.ITEM ? (offered.isEmpty() ? current().slotLimit(index) : offered instanceof ItemResource item ? item.getMaxStackSize() : 0) : current().tankCapacity(type,index);
+        }
+        public boolean isValid(int index,T offered) {
+            check(index);
+            if(!current().enabled(type) || offered.isEmpty()) return false;
+            String id=id(offered);
+            return net.gasharaujo.timelesss.ResourceConfig.accepts(type,id) && offered.equals(resource(id))
+                && (type==ResourceType.ITEM || current().tankId(type,index).equals(id));
+        }
+        public int insert(int index,T offered,int amount,TransactionContext transaction) {
+            if(amount<=0 || !isValid(index,offered)) return 0;
+            String id=id(offered);
+            return change(transaction,s -> {
+                if(type!=ResourceType.ITEM) return (int)s.insert(type,id,amount,false);
+                int count=s.slotAmount(index);
+                if(count>0 && !s.slotId(index).equals(id)) return 0;
+                int n=Math.min(amount,s.stackLimit(id)-count);
+                if(n>0) s.setSlot(index,id,count+n);
                 return n;
             });
         }
-        public int extract(int index, T resource, int amount, TransactionContext transaction) {
-            if (amount <= 0 || !isValid(index, resource)) return 0;
-            return change(transaction, s -> {
-                if (type != ResourceType.ITEM) return (int)s.extract(type, amount, false);
-                int n = Math.min(amount, s.slotAmount(index));
-                if (n > 0) s.setSlot(index, s.slotAmount(index) - n);
+        public int extract(int index,T offered,int amount,TransactionContext transaction) {
+            check(index);
+            if(amount<=0 || !current().enabled(type) || offered.isEmpty() || !offered.equals(getResource(index))) return 0;
+            String id=id(offered);
+            return change(transaction,s -> {
+                if(type!=ResourceType.ITEM) return (int)s.extract(type,id,amount,false);
+                int count=s.slotAmount(index),n=Math.min(amount,count);
+                if(n>0) s.setSlot(index,id,count-n);
                 return n;
             });
         }

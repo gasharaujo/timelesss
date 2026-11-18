@@ -23,6 +23,11 @@ public final class TimeBindsScreen extends Screen {
     private int maximum=50;
     private boolean linear;
     private long baseCost=100;
+    private java.util.List<net.gasharaujo.timelesss.resource.NetworkResourceView> resourceViews=java.util.List.of();
+    private int resourceIndex;
+    private net.gasharaujo.timelesss.resource.NetworkResourceView resourceView() {
+        return resourceViews.isEmpty() ? new net.gasharaujo.timelesss.resource.NetworkResourceView("ENERGY",unit,energy,capacity,baseCost,java.math.BigDecimal.ONE) : resourceViews.get(resourceIndex);
+    }
     private BindView selected;
     private int page;
 
@@ -39,6 +44,7 @@ public final class TimeBindsScreen extends Screen {
                 if(header.length>=6) {
                     unit=header[2];maximum=Math.max(1,(int)parseLong(header[3]));
                     linear=header[4].equals("LINEAR");baseCost=parseLong(header[5]);
+                    if(header.length>=7) resourceViews=net.gasharaujo.timelesss.resource.NetworkResourceView.parse(header[6]);
                 }
             }
         }
@@ -81,12 +87,12 @@ public final class TimeBindsScreen extends Screen {
         return Math.max(1, (panelBottom() - panelTop() - 84) / ROW_HEIGHT);
     }
 
-    private long currentConsumption() {
+    private String currentConsumption() {
         long total = 0L;
         for (BindView bind : binds) {
-            total = net.gasharaujo.timelesss.resource.ResourceMath.add(total, net.gasharaujo.timelesss.resource.ResourceMath.cost(baseCost,bind.multiplier,linear));
+            total = net.gasharaujo.timelesss.resource.ResourceMath.add(total, net.gasharaujo.timelesss.resource.ResourceMath.cost(resourceView().base(),bind.multiplier,linear));
         }
-        return total;
+        return resourceView().consumption(total);
     }
 
     private void buildPage() {
@@ -95,6 +101,10 @@ public final class TimeBindsScreen extends Screen {
         int left = (width - panelWidth) / 2;
         int top = panelTop();
         int rowWidth = (panelWidth - 24) / 2;
+        if(resourceViews.size()>1) {
+            addRenderableWidget(Button.builder(Component.literal("<"),button -> { resourceIndex=Math.floorMod(resourceIndex-1,resourceViews.size());buildPage(); }).bounds(left+8,top+17,18,14).build());
+            addRenderableWidget(Button.builder(Component.literal(">"),button -> { resourceIndex=(resourceIndex+1)%resourceViews.size();buildPage(); }).bounds(left+panelWidth-26,top+17,18,14).build());
+        }
         int start = page * pageSize();
         int end = Math.min(binds.size(), start + pageSize());
         for (int index = start; index < end; index++) {
@@ -152,9 +162,9 @@ public final class TimeBindsScreen extends Screen {
         graphics.fill(left, top, left + panelWidth, bottom, 0xD018101F);
         graphics.fill(left, top, left + panelWidth, top + 2, 0xFFDD3344);
         graphics.centeredText(font, title, width / 2, top + 7, 0xFFFFFFFF);
-        graphics.centeredText(font, Component.translatable("screen.timelesss.binds.energy", energy, capacity, unit),
+        graphics.centeredText(font, font.plainSubstrByWidth(Component.translatable("screen.timelesss.binds.resource_option", resourceView().label(), resourceView().stored(), resourceView().capacity(), resourceView().unit()).getString(),panelWidth-64),
             width / 2, top + 19, 0xFF7CFC98);
-        graphics.centeredText(font, Component.translatable("screen.timelesss.binds.consumption", currentConsumption(), unit),
+        graphics.centeredText(font, Component.translatable("screen.timelesss.binds.consumption", currentConsumption(), resourceView().unit()),
             width / 2, top + 31, 0xFFFFD166);
         int start = page * pageSize();
         int end = Math.min(binds.size(), start + pageSize());

@@ -18,23 +18,78 @@ personalMax = 25
 distributorMax = 50
 
 [network]
-resource = "ENERGY" # ENERGY, FLUID, GAS ou ITEM
-fluid = ""         # vazio = minecraft:lava
-gas = ""           # vazio = mekanism:hydrogen
-item = ""          # vazio = minecraft:coal
+resource = ["ENERGY"] # aceita uma string ou lista: ENERGY, FLUID, GAS, ITEM
+fluid = ["minecraft:lava"]
+gas = ["mekanism:hydrogen"]
+item = ["minecraft:coal"]
 ```
 
-Os campos de ID aceitam recursos registrados por qualquer mod instalado.
-`GAS` usa a capability opcional de gás do Mekanism na 1.20.1 e de químicos
-na 1.21.1. Sem uma API compatível instalada, a capability de gás fica
-indisponível; o mod continua carregando. As demais integrações também são
-opcionais. Não há limite máximo de versão para mods ou loaders nas dependências;
-o Minecraft é restrito à versão correspondente de cada JAR.
+Vários tipos são **alternativas**, em ordem de prioridade. Por exemplo,
+`resource = ["ENERGY", "GAS", "ITEM"]` tenta energia, depois gás e depois item.
+A primeira combinação tipo/material capaz de pagar um segundo inteiro é usada.
+Não cobra todos os tipos juntos e não mistura saldos de materiais diferentes
+para completar uma cobrança. O saldo de vários Hubs/Distributors do mesmo
+material continua sendo somado.
 
-Cada saldo é associado ao tipo e ao ID configurados. Trocar de lava para água,
-por exemplo, não converte a lava que estava guardada. O saldo antigo continua
-salvo para quando a configuração original voltar. Reduzir uma capacidade limita
-o saldo utilizável; evite reduzir limites com os reservatórios cheios.
+Cada material aceita um modificador que multiplica a base de consumo:
+`1` mantém a base, `0.25` usa um quarto e `2` usa o dobro. Por exemplo, a base
+100 mB com `mekanism:ethene = 0.25` custa 25 mB em 1x. O modificador deve ser
+positivo, finito e ter até 12 casas decimais. IDs repetidos são rejeitados.
+
+Estes formatos são aceitos para fluido, gás e item:
+
+```toml
+# Um ID usa o consumo padrão (modificador 1).
+gas = "mekanism:hydrogen"
+
+# Lista fácil de editar pelo Configured, uma linha por material.
+gas = ["mekanism:hydrogen = 1", "mekanism:ethene = 0.25"]
+
+# Lista associada por pares.
+gas = [["mekanism:hydrogen", 1], ["mekanism:ethene", 0.25]]
+
+# Lista alternando ID e modificador.
+gas = ["mekanism:hydrogen", 1, "mekanism:ethene", 0.25]
+
+# Tabela associada.
+gas = { "mekanism:hydrogen" = 1, "mekanism:ethene" = 0.25 }
+```
+
+Use apenas uma atribuição por campo; os exemplos acima mostram alternativas.
+Campo vazio mantém os padrões anteriores: lava, hidrogênio ou carvão.
+Os campos aceitam IDs de qualquer mod instalado. `GAS` usa a capability
+opcional de gás do Mekanism na 1.20.1 e de químicos na 1.21.1. Sem API
+compatível, as demais alternativas continuam disponíveis.
+
+Fluidos e gases têm capacidades independentes. Os materiais de cada tipo
+compartilham sua capacidade total; configurar dois fluidos não duplica o tanque.
+Itens diferentes ocupam slots diferentes e respeitam seus próprios limites de
+stack. O saldo de cada material permanece identificado por tipo e ID, inclusive
+no salvamento do mundo e das Batteries.
+
+Consumos fracionários são preservados como crédito pré-pago, sem arredondar
+cada cobrança para uma unidade inteira perdida. Em itens com modificador
+`0.25`, a primeira cobrança desconta um item e deixa crédito para outras três.
+O crédito da rede é salvo por jogador e material; o do item pessoal fica no item.
+
+## Edição pelo Configured
+
+1. Abra as configurações de **Just Gash Timelesss** no Configured.
+2. Entre em **Recursos da rede** e edite **Recursos aceitos (ordem de prioridade)**.
+   Adicione `ENERGY`, `FLUID`, `GAS` e/ou `ITEM`, uma opção por linha.
+3. Em **Fluidos**, **Gases/químicos** ou **Itens e modificadores**, use uma linha
+   por material: `mekanism:hydrogen` ou `mekanism:ethene = 0.25`.
+4. Ajuste as bases em **Consumo** e as capacidades em **Armazenamento**, salve
+   e reabra o mundo para aplicar as opções que exigem reinício de mundo.
+
+Os formatos antigos e as listas associadas são normalizados, ao carregar,
+para listas simples de texto que o editor do Configured pode adicionar,
+remover e alterar. Campos e categorias possuem nomes e instruções em PT-BR
+com exemplos e unidades. Na 1.20.1, as configurações de servidor pertencem ao
+mundo; abra o mundo desejado para editá-las. Configured continua opcional.
+
+A tela F12 permite alternar entre os materiais com as setas do cabeçalho,
+mostrando o saldo e o consumo com o modificador correspondente.
 
 ## Consumo
 
@@ -48,8 +103,9 @@ itemBase = 1      # unidade do item
 ```
 
 Na rede, a base é o consumo **por segundo em 1x**, somado para todos os vínculos.
-A rede paga um segundo inteiro antes de acelerar. Se o conjunto não tiver saldo
-suficiente, nenhum recurso é descontado e a aceleração aguarda a próxima cobrança.
+A rede escolhe uma alternativa e paga um segundo inteiro antes de acelerar.
+Se nenhuma alternativa tiver saldo suficiente, nenhum recurso é descontado e
+a aceleração aguarda a próxima cobrança.
 Alterar um vínculo invalida o segundo já pago. `0x` desativa o vínculo.
 
 No item pessoal, a base é cobrada por ativação. Alvos sem aceleração compatível
@@ -90,8 +146,8 @@ stack. Instalar uma Battery no Hub transfere o saldo dela e consome a bateria.
 No Distributor, clicar com uma Battery apenas transfere seu saldo, preservando-a.
 
 FE, fluidos, itens e gás/químicos são expostos pelas capabilities do loader e
-do Mekanism, permitindo abastecimento por máquinas, tubos e cabos. Somente a
-capability do recurso selecionado fica ativa. Os slots aceitam o ID configurado
+do Mekanism, permitindo abastecimento por máquinas, tubos e cabos. As capabilities de todos os
+tipos selecionados ficam ativas simultaneamente. Os slots aceitam o ID configurado
 com seus componentes padrão, preservando o significado do combustível.
 
 Também é possível clicar no Hub/Distributor com o item combustível ou com um
@@ -126,8 +182,8 @@ timeLimit = 0 # 0 = sem limite de ticks acumulados
 
 Para abastecer manualmente, segure o item pessoal/Battery em uma mão e um
 recipiente de fluido ou combustível na outra e clique direito no ar, sem Shift.
-Uma Battery também pode transferir energia/fluido ao item pessoal se ambos
-usarem o mesmo recurso. Shift + clique direito continua abrindo o multiplicador.
+Uma Battery também pode transferir energia/fluido ao item pessoal quando
+esses tipos estiverem aceitos na rede; cada material mantém seu ID. Shift + clique direito continua abrindo o multiplicador.
 O item pessoal aceita FE/fluido diretamente pelas capabilities quando configurado
 para esses consumos.
 

@@ -48,8 +48,9 @@ public final class PlatformChecks {
     public static String dimension(ServerLevel level) { return level.dimension().location().toString(); }
 
     @SuppressWarnings({"rawtypes","unchecked"})
-    public static void capabilities(ServerLevel level, net.minecraft.core.BlockPos pos) {
-        var type=ResourceConfig.networkResource();
+    public static void capabilities(ServerLevel level, net.minecraft.core.BlockPos pos) { capabilities(level,pos,ResourceConfig.networkResource()); }
+    @SuppressWarnings({"rawtypes","unchecked"})
+    public static void capabilities(ServerLevel level, net.minecraft.core.BlockPos pos,net.gasharaujo.timelesss.resource.ResourceType type) {
         net.neoforged.neoforge.capabilities.BlockCapability blockCap=switch(type) {
             case ENERGY -> net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK;
             case FLUID -> net.neoforged.neoforge.capabilities.Capabilities.FluidHandler.BLOCK;
@@ -66,5 +67,37 @@ public final class PlatformChecks {
             default -> (net.neoforged.neoforge.capabilities.ItemCapability)net.gasharaujo.timelesss.resource.MekanismBridge.itemCapability();
         };
         if(stack.getCapability(itemCap)==null) throw new AssertionError(type+" battery capability not exposed");
+    }
+
+    public static void configured() throws Exception {
+        Class<?> wrapper;
+        try { wrapper=Class.forName("com.mrcrayfish.configured.impl.neoforge.NeoForgeListValue"); }
+        catch(ClassNotFoundException e) { System.out.println("CONFIGURED_MODEL_TEST_SKIPPED (optional mod absent)");return; }
+        for(var option:java.util.List.of(ResourceConfig.NETWORK_RESOURCE,ResourceConfig.FLUID,ResourceConfig.GAS,ResourceConfig.ITEM)) {
+            Object spec=ResourceConfig.SPECIFICATION.getSpec().get(option.getPath());
+            Object model=wrapper.getConstructors()[0].newInstance(option,spec);
+            if(!(wrapper.getMethod("getConverted").invoke(model) instanceof java.util.List<?>)) throw new AssertionError("Configured cannot convert list");
+            Object rows=wrapper.getMethod("get").invoke(model);
+            if(!(boolean)wrapper.getMethod("isValid",Object.class).invoke(model,rows)) throw new AssertionError("Configured rejects normalized rows");
+            if(!wrapper.getMethod("getTranslationKey").invoke(model).toString().startsWith("config.timelesss.")) throw new AssertionError("Configured field has no friendly name");
+            var updated=new java.util.ArrayList<>((java.util.List<?>)rows);
+            wrapper.getMethod("set",java.util.List.class).invoke(model,updated);
+            if(!(wrapper.getMethod("getConverted").invoke(model) instanceof java.util.List<?>)) throw new AssertionError("Configured cannot edit rows");
+        }
+        System.out.println("CONFIGURED_MODEL_TEST_PASSED");
+    }
+
+    public static void multiHandlers(net.gasharaujo.timelesss.resource.ResourceStorage s) {
+        var fluid=net.gasharaujo.timelesss.resource.ResourceHandlers.fluid(s,net.minecraft.world.item.ItemStack.EMPTY);
+        eq(2,fluid.getTanks(),"multiple fluid tanks");
+        if(fluid.getFluidInTank(1).getFluid()!=net.minecraft.world.level.material.Fluids.WATER) throw new AssertionError("wrong second fluid identity");
+        var water=new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER,10);
+        if(fluid.isFluidValid(0,water) || !fluid.isFluidValid(1,water)) throw new AssertionError("fluid tank filter mismatch");
+        eq(10,fluid.drain(water,net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.SIMULATE).getAmount(),"second fluid simulated extraction");
+        eq(400,s.amount(net.gasharaujo.timelesss.resource.ResourceType.FLUID,"minecraft:water"),"fluid simulation preserves second material");
+        var items=net.gasharaujo.timelesss.resource.ResourceHandlers.items(s);
+        if(!items.getStackInSlot(1).is(net.minecraft.world.item.Items.CHARCOAL)) throw new AssertionError("wrong second item identity");
+        eq(2,items.extractItem(1,2,true).getCount(),"second item simulated extraction");
+        eq(4,s.amount(net.gasharaujo.timelesss.resource.ResourceType.ITEM,"minecraft:charcoal"),"item simulation preserves second material");
     }
 }

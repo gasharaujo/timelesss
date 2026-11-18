@@ -147,6 +147,7 @@ public final class RuntimeSelfTest {
         network(level,(ServerPlayer)player);
         ResourceConfig.NETWORK_RESOURCE.set(ResourceType.ENERGY);ResourceConfig.NETWORK_RESOURCE.clearCache();
         ResourceConfig.CURVE.set(ResourceConfig.Curve.DEFAULT);ResourceConfig.CURVE.clearCache();
+        MultiResourceSelfTest.run(level);
         System.out.println("TIMELESSS_SELFTEST_PASSED checks="+checks);
     }
 

@@ -12,7 +12,9 @@ item e sincronizado com o servidor.
 
 A versão 2.5 permite configurar os máximos, o combustível da rede (FE, fluido,
 gás do Mekanism ou item), capacidades e consumo pessoal (nenhum, fluido,
-durabilidade, XP, FE ou tempo acumulado), além das curvas padrão e linear.
+durabilidade, XP, FE ou tempo acumulado), além das curvas padrão e linear. A rede aceita múltiplos recursos alternativos
+e múltiplos materiais com modificadores de consumo; as listas possuem nomes
+e ajuda em PT-BR para edição pelo Configured.
 Veja os padrões, exemplos e instruções em [Configuração 2.5](docs/CONFIG-2.5.md).
 
 ## Uso

@@ -9,3 +9,4 @@ builds/
 .tmp-*.py
 **/.tmp-*.py
 forge-1.20.1/test-mods/Mekanism-*.jar
+forge-1.20.1/test-mods/configured-*.jar

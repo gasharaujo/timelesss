@@ -23,7 +23,7 @@ public final class MekanismBridge {
     }
 
     public static Object handler(ResourceStorage storage) {
-        if (storage.type() != ResourceType.GAS) return null;
+        if (!storage.enabled(ResourceType.GAS)) return null;
         try {
             Class<?> handler;
             Class<?> stack;
@@ -44,27 +44,29 @@ public final class MekanismBridge {
                     default -> null;
                 };
                 if (method.isDefault()) return InvocationHandler.invokeDefault(proxy, method, args);
-                if (name.equals("getTanks") || name.equals("getChemicalTanks")) return 1;
+                if (name.equals("getTanks") || name.equals("getChemicalTanks")) return storage.tanks(ResourceType.GAS);
                 if (name.equals("getEmptyStack")) return stackClass.getField("EMPTY").get(null);
-                if (args != null && args.length > 0 && args[0] instanceof Integer index) java.util.Objects.checkIndex(index, 1);
-                if (name.equals("getTankCapacity") || name.equals("getChemicalTankCapacity")) return storage.capacity(ResourceType.GAS);
-                if (name.equals("getChemicalInTank")) return stack(stackClass, storage.amount(ResourceType.GAS));
-                if (name.equals("isValid")) return valid(args[1]);
+                if (args != null && args.length > 0 && args[0] instanceof Integer index) java.util.Objects.checkIndex(index, storage.tanks(ResourceType.GAS));
+                int tank=args!=null && args.length>0 && args[0] instanceof Integer index ? index : 0;
+                String id=storage.tankId(ResourceType.GAS,tank);
+                if (name.equals("getTankCapacity") || name.equals("getChemicalTankCapacity")) return storage.tankCapacity(ResourceType.GAS,tank);
+                if (name.equals("getChemicalInTank")) return stack(stackClass,id,storage.amount(ResourceType.GAS,id));
+                if (name.equals("isValid")) return valid(args[1],id);
                 if (name.equals("setChemicalInTank")) {
-                    if (valid(args[1])) storage.set(ResourceType.GAS, amount(args[1]));
-                    else if ((boolean)args[1].getClass().getMethod("isEmpty").invoke(args[1])) storage.set(ResourceType.GAS, 0);
+                    if (valid(args[1],id)) storage.set(ResourceType.GAS,id,amount(args[1]));
+                    else if ((boolean)args[1].getClass().getMethod("isEmpty").invoke(args[1])) storage.set(ResourceType.GAS,id,0);
                     return null;
                 }
                 boolean simulate = args[args.length - 1].toString().equals("SIMULATE");
                 if (name.equals("insertChemical")) {
                     Object offered = args[1];
-                    if (!valid(offered)) return offered;
-                    long moved = storage.insert(ResourceType.GAS, amount(offered), simulate);
+                    if (!valid(offered,id)) return offered;
+                    long moved = storage.insert(ResourceType.GAS,id,amount(offered),simulate);
                     Object remainder = offered.getClass().getMethod("copy").invoke(offered);
                     remainder.getClass().getMethod("setAmount", long.class).invoke(remainder, amount(offered) - moved);
                     return remainder;
                 }
-                if (name.equals("extractChemical")) return stack(stackClass, storage.extract(ResourceType.GAS, ((Number)args[1]).longValue(), simulate));
+                if (name.equals("extractChemical")) return stack(stackClass,id,storage.extract(ResourceType.GAS,id,((Number)args[1]).longValue(),simulate));
                 throw new UnsupportedOperationException(method.toString());
             });
         } catch (ReflectiveOperationException | LinkageError e) {
@@ -75,18 +77,21 @@ public final class MekanismBridge {
     private static long amount(Object stack) throws ReflectiveOperationException {
         return ((Number)stack.getClass().getMethod("getAmount").invoke(stack)).longValue();
     }
-    private static boolean valid(Object stack) throws ReflectiveOperationException {
+    private static boolean valid(Object stack,String id) throws ReflectiveOperationException {
         return !(boolean)stack.getClass().getMethod("isEmpty").invoke(stack)
-            && ResourceConfig.id(ResourceType.GAS).equals(stack.getClass().getMethod("getTypeRegistryName").invoke(stack).toString());
+            && id.equals(stack.getClass().getMethod("getTypeRegistryName").invoke(stack).toString());
     }
     private static Object stack(Class<?> stackClass, long amount) throws ReflectiveOperationException {
+        return stack(stackClass,ResourceConfig.id(ResourceType.GAS),amount);
+    }
+    private static Object stack(Class<?> stackClass,String id,long amount) throws ReflectiveOperationException {
         if (amount <= 0) return stackClass.getField("EMPTY").get(null);
         Class<?> api = Class.forName("mekanism.api.MekanismAPI");
         Object registry;
         boolean legacy;
         try { registry = api.getMethod("gasRegistry").invoke(null); legacy = true; }
         catch (NoSuchMethodException e) { registry = api.getField("CHEMICAL_REGISTRY").get(null); legacy = false; }
-        Object chemical = ResourceStorage.gasChemical(registry);
+        Object chemical = ResourceStorage.gasChemical(registry,id);
         if (chemical == null) return stackClass.getField("EMPTY").get(null);
         for (Constructor<?> constructor : stackClass.getConstructors()) {
             Class<?>[] types = constructor.getParameterTypes();
