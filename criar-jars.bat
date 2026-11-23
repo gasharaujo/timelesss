@@ -2,34 +2,39 @@
 setlocal
 chcp 65001 >nul
 set "ROOT=%~dp0"
-set "ver=2.5"
-set "OUTPUT=%ROOT%builds"
+set "VER="
+for /f "tokens=1,* delims==" %%A in ('findstr /b "mod_version=" "%ROOT%forge-1.20.1\gradle.properties"') do set "VER=%%B"
+if not defined VER goto :failure
+set "OUTPUT=%ROOT%builds\%VER%"
+set "JAR=timelesss-%VER%.jar"
 
-echo [1/3] Compilando NeoForge 26.1.2...
-call "%ROOT%neoforge-26.1.2\gradlew.bat" -p "%ROOT%neoforge-26.1.2" build
+call :build forge-1.20.1
+if errorlevel 1 goto :failure
+call :build neoforge-1.21.1 --no-problems-report
 if errorlevel 1 goto :failure
 
-echo [2/3] Compilando NeoForge 1.21.1...
-call "%ROOT%neoforge-1.21.1\gradlew.bat" -p "%ROOT%neoforge-1.21.1" build
+if exist "C:\Program Files\Java\jdk-25.0.2\bin\java.exe" set "JAVA_HOME=C:\Program Files\Java\jdk-25.0.2"
+call :build neoforge-26.1.2 --no-problems-report
+if errorlevel 1 goto :failure
+call :build neoforge-26.3 --no-problems-report
 if errorlevel 1 goto :failure
 
-echo [3/3] Compilando Forge 1.20.1...
-call "%ROOT%forge-1.20.1\gradlew.bat" -p "%ROOT%forge-1.20.1" build
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; Compress-Archive -Path (Join-Path $env:OUTPUT '*') -DestinationPath (Join-Path (Split-Path $env:OUTPUT) ('timelesss-' + $env:VER + '.zip')) -Force"
 if errorlevel 1 goto :failure
 
-if not exist "%OUTPUT%" mkdir "%OUTPUT%"
-copy /Y "%ROOT%neoforge-26.1.2\build\libs\timelesss-neoforge-26.1.2-%ver%.jar" "%OUTPUT%\" >nul
-copy /Y "%ROOT%neoforge-1.21.1\build\libs\timelesss-neoforge-1.21.1-%ver%.jar" "%OUTPUT%\" >nul
-copy /Y "%ROOT%forge-1.20.1\build\libs\timelesss-forge-1.20.1-%ver%.jar" "%OUTPUT%\" >nul
-
-echo.
-echo JARs criados com sucesso em:
-echo %OUTPUT%
+echo JARs criados em %OUTPUT%
 pause
 exit /b 0
 
+:build
+echo Compilando %~1...
+call "%ROOT%%~1\gradlew.bat" -p "%ROOT%%~1" build --console=plain %~2
+if errorlevel 1 exit /b 1
+if not exist "%OUTPUT%\%~1" mkdir "%OUTPUT%\%~1"
+copy /Y "%ROOT%%~1\build\libs\%JAR%" "%OUTPUT%\%~1\%JAR%" >nul
+exit /b %errorlevel%
+
 :failure
-echo.
-echo A compilacao falhou. Veja os erros acima.
+echo A compilacao ou o empacotamento falhou. Veja os erros acima.
 pause
 exit /b 1

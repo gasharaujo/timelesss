@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" PT", " PP", "N  "],
+  "key": {
+    "P": "minecraft:paper",
+    "T": "timelesss:timelesss",
+    "N": "minecraft:netherite_ingot"
+  },
+  "result": { "id": "timelesss:time_wrench", "count": 1 }
+}

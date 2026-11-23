@@ -1,22 +1,25 @@
 package net.gasharaujo.timelesss.item;
 
-import net.minecraft.world.item.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.network.chat.Component;
 
 public final class BatteryItem extends Item {
-    public BatteryItem(Properties properties) { super(properties.stacksTo(1)); }
-    @Override public net.minecraft.world.InteractionResultHolder<ItemStack> use(Level level, Player player, net.minecraft.world.InteractionHand hand) {
-        ItemStack stack=player.getItemInHand(hand);
-        if(!level.isClientSide()) net.gasharaujo.timelesss.resource.ResourceInteraction.fillPersonal(player,hand,stack);
-        return net.minecraft.world.InteractionResultHolder.sidedSuccess(stack,level.isClientSide());
+    public BatteryItem(Properties properties) {
+        super(properties.stacksTo(64));
     }
-    @Override public void appendHoverText(ItemStack stack, Level level, java.util.List<Component> tooltip, TooltipFlag flag) {
-        var s=net.gasharaujo.timelesss.resource.ResourceStorage.item(stack);
-        for(var type:s.types()) tooltip.add(Component.translatable("tooltip.timelesss.resource",type.name(),s.amount(type),s.capacity(type)));
-    }
-    @Override public net.minecraftforge.common.capabilities.ICapabilityProvider initCapabilities(ItemStack stack, net.minecraft.nbt.CompoundTag tag) {
-        return new net.gasharaujo.timelesss.resource.ResourceCapabilities(stack);
+
+    // Remove obsolete charge data so older batteries can merge with fresh stacks.
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity owner, int slot, boolean selected) {
+        CompoundTag tag = stack.getTag();
+        if (!level.isClientSide() && tag != null && tag.contains("timelesss_resources")) {
+            tag.remove("timelesss_resources");
+            if (tag.isEmpty()) {
+                stack.setTag(null);
+            }
+        }
     }
 }

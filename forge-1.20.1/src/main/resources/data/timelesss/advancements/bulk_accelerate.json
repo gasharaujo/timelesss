@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "item": "timelesss:battery"
+    },
+    "title": {
+      "translate": "advancements.timelesss.bulk_accelerate.title"
+    },
+    "description": {
+      "translate": "advancements.timelesss.bulk_accelerate.description"
+    },
+    "frame": "challenge"
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "timelesss:using_power"
+}

@@ -1,6 +1,8 @@
 package net.gasharaujo.timelesss.testing;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.gasharaujo.timelesss.ResourceConfig;
 import net.gasharaujo.timelesss.TimelesssMod;
 import net.minecraft.world.entity.player.Player;
@@ -20,6 +22,36 @@ public final class PlatformChecks {
         finally { event.getServer().halt(false); }
     }
     public static Player player(ServerLevel level) { return net.minecraftforge.common.util.FakePlayerFactory.getMinecraft(level); }
+    public static ServerPlayer advancementPlayer(ServerLevel level, String name) {
+        var profile = new GameProfile(java.util.UUID.randomUUID(), name);
+        return new ServerPlayer(level.getServer(), level, profile) {
+            @Override
+            public void sendSystemMessage(net.minecraft.network.chat.Component message) {
+            }
+        };
+    }
+
+    public static boolean advancementDone(ServerLevel level, ServerPlayer player, String path) {
+        var advancement = level.getServer().getAdvancements().getAdvancement(new net.minecraft.resources.ResourceLocation("timelesss", path));
+        if (advancement == null) {
+            throw new AssertionError("Advancement did not load: " + path);
+        }
+        return player.getAdvancements().getOrStartProgress(advancement).isDone();
+    }
+
+    public static void craft(ServerPlayer player, net.minecraft.world.item.ItemStack stack) {
+        net.minecraftforge.event.ForgeEventFactory.firePlayerCraftingEvent(player, stack, new net.minecraft.world.SimpleContainer(9));
+    }
+
+    public static boolean migratedBatteryStacks(ServerLevel level, ServerPlayer player) {
+        var stack = new net.minecraft.world.item.ItemStack(TimelesssMod.BATTERY.get());
+        var legacy = new net.minecraft.nbt.CompoundTag();
+        legacy.putLong("ENERGY:", 100);
+        stack.getOrCreateTag().put("timelesss_resources", legacy);
+        stack.inventoryTick(level, player, 0, true);
+        return net.minecraft.world.item.ItemStack.isSameItemSameTags(stack, new net.minecraft.world.item.ItemStack(TimelesssMod.BATTERY.get()));
+    }
+
     public static BlockEntity roundTrip(BlockEntity entity, ServerLevel level) { return BlockEntity.loadStatic(entity.getBlockPos(),entity.getBlockState(),entity.saveWithFullMetadata()); }
     public static int paid(Player player) { return player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG).getCompound("timelesss_time_network").getInt("paid_ticks"); }
     public static void handlers(net.gasharaujo.timelesss.resource.ResourceStorage s) {
@@ -65,7 +97,7 @@ public final class PlatformChecks {
         if(!level.getBlockEntity(pos).getCapability(cap,net.minecraft.core.Direction.UP).isPresent()) throw new AssertionError(type+" block capability not exposed");
         var stack=new net.minecraft.world.item.ItemStack(TimelesssMod.BATTERY.get());
         if(type==net.gasharaujo.timelesss.resource.ResourceType.FLUID) cap=net.minecraftforge.common.capabilities.ForgeCapabilities.FLUID_HANDLER_ITEM;
-        if(!stack.getCapability(cap).isPresent()) throw new AssertionError(type+" battery capability not exposed");
+        if(stack.getCapability(cap).isPresent()) throw new AssertionError(type+" battery capability still exposed");
     }
 
     public static void configured() throws Exception {

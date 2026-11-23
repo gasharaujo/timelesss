@@ -97,5 +97,15 @@
   "config.timelesss.personal.timeChargePerTick": "Ticks charged per inventory tick",
   "config.timelesss.personal.timeChargePerTick.tooltip": "Ticks charged per inventory tick. Reopen the world to apply capacity and consumption changes.",
   "config.timelesss.personal.timeLimit": "Stored time limit (0 = unlimited)",
-  "config.timelesss.personal.timeLimit.tooltip": "Stored time limit (0 = unlimited). Reopen the world to apply capacity and consumption changes."
+  "config.timelesss.personal.timeLimit.tooltip": "Stored time limit (0 = unlimited). Reopen the world to apply capacity and consumption changes.",
+  "advancements.timelesss.im_timelesss_now.title": "I'm timelesss now",
+  "advancements.timelesss.im_timelesss_now.description": "Craft a Timelesss.",
+  "advancements.timelesss.using_power.title": "Using power",
+  "advancements.timelesss.using_power.description": "Charge your temporal network with FE for the first time.",
+  "advancements.timelesss.master_of_time.title": "master of time",
+  "advancements.timelesss.master_of_time.description": "Craft a Time Distributor.",
+  "advancements.timelesss.time_managing.title": "Time managing",
+  "advancements.timelesss.time_managing.description": "Accelerate a target while using 100% of your network capacity in one second.",
+  "advancements.timelesss.bulk_accelerate.title": "bulk accelerate",
+  "advancements.timelesss.bulk_accelerate.description": "Install 640 extra batteries across your active Battery Hubs."
 }

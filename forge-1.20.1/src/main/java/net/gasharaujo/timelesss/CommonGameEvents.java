@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -75,7 +76,7 @@ public final class CommonGameEvents {
 
         if (player.level().getBlockEntity(clickedPos) instanceof net.gasharaujo.timelesss.block.entity.ResourceBlockEntity resourceBlock) {
             if (!player.level().isClientSide()) {
-                boolean fueling=stack.is(TimelesssMod.BATTERY.get()) || player.isShiftKeyDown()
+                boolean fueling=player.isShiftKeyDown()
                     || resourceBlock.resources().enabled(net.gasharaujo.timelesss.resource.ResourceType.FLUID)
                     || resourceBlock.resources().enabled(net.gasharaujo.timelesss.resource.ResourceType.ITEM);
                 if(fueling || !distributor) net.gasharaujo.timelesss.resource.ResourceInteraction.block(player,event.getHand(),resourceBlock);
@@ -89,6 +90,18 @@ public final class CommonGameEvents {
     public static void levelTick(TickEvent.LevelTickEvent event) {
         if (event.phase == TickEvent.Phase.END && event.level instanceof net.minecraft.server.level.ServerLevel level) {
             TimeNetwork.tick(level);
+        }
+    }
+
+    @SubscribeEvent
+    public static void itemCrafted(PlayerEvent.ItemCraftedEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ItemStack crafted = event.getCrafting();
+            if (crafted.is(TimelesssMod.TIMELESSS.get())) {
+                TimelesssAdvancements.award(player, "im_timelesss_now");
+            } else if (crafted.is(TimelesssMod.TIME_DISTRIBUTOR_ITEM.get())) {
+                TimelesssAdvancements.award(player, "master_of_time");
+            }
         }
     }
 
