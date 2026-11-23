@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "id": "timelesss:time_distributor"
+    },
+    "title": {
+      "translate": "advancements.timelesss.master_of_time.title"
+    },
+    "description": {
+      "translate": "advancements.timelesss.master_of_time.description"
+    },
+    "frame": "task"
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "timelesss:im_timelesss_now"
+}

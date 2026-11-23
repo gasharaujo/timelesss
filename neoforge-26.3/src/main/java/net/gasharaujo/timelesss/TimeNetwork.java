@@ -3,7 +3,12 @@ package net.gasharaujo.timelesss;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import net.gasharaujo.timelesss.block.entity.BatteryHubBlockEntity;
 import net.gasharaujo.timelesss.block.entity.PlayerEnergyNode;
+import net.gasharaujo.timelesss.resource.FuelPayment;
+import net.gasharaujo.timelesss.resource.ResourceMath;
+import net.gasharaujo.timelesss.resource.ResourceStorage;
+import net.gasharaujo.timelesss.resource.ResourceType;
 import net.gasharaujo.timelesss.item.TimelesssAccelerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -21,6 +26,8 @@ public final class TimeNetwork {
     private static final String ROOT_KEY = "timelesss_time_network";
     private static final String BINDS_KEY = "binds";
     private static final String DISTRIBUTORS_KEY = "distributors";
+    private static final String FULL_CAPACITY_PAYMENT_KEY = "full_capacity_payment";
+    private static final int BULK_BATTERIES = 640;
 
     private TimeNetwork() {
     }
@@ -99,36 +106,81 @@ public final class TimeNetwork {
             if (gameTime % 20L == 0L) {
                 payForNextSecond(player);
             }
-            CompoundTag network = data(player);
-            int paidTicks = network.getIntOr("paid_ticks", 0);
-            if (paidTicks <= 0) {
+            acceleratePaidBinds(player, server);
+        }
+    }
+
+    private static void acceleratePaidBinds(ServerPlayer player, MinecraftServer server) {
+        CompoundTag network = data(player);
+        int paidTicks = network.getIntOr("paid_ticks", 0);
+        if (paidTicks <= 0) {
+            return;
+        }
+        network.putInt("paid_ticks", paidTicks - 1);
+        for (Bind bind : getBinds(player)) {
+            if (bind.multiplier <= 0) {
                 continue;
             }
-            network.putInt("paid_ticks", paidTicks - 1);
-            for (Bind bind : getBinds(player)) {
-                if (bind.multiplier <= 0) {
-                    continue;
-                }
-                ServerLevel targetLevel = resolveLevel(server, bind.dimension);
-                BlockPos pos = BlockPos.of(bind.position);
-                if (targetLevel != null && targetLevel.isLoaded(pos)) {
-                    TimelesssAccelerator.accelerateBoundBlock(targetLevel, pos, bind.multiplier);
+            ServerLevel targetLevel = resolveLevel(server, bind.dimension);
+            BlockPos pos = BlockPos.of(bind.position);
+            if (targetLevel != null && targetLevel.isLoaded(pos)) {
+                boolean accelerated = TimelesssAccelerator.accelerateBoundBlock(targetLevel, pos, bind.multiplier);
+                if (accelerated && network.getBooleanOr(FULL_CAPACITY_PAYMENT_KEY, false)) {
+                    TimelesssAdvancements.award(player, "time_managing");
+                    network.remove(FULL_CAPACITY_PAYMENT_KEY);
                 }
             }
         }
     }
 
     private static void payForNextSecond(ServerPlayer player) {
-        CompoundTag network=data(player);
-        List<net.gasharaujo.timelesss.resource.ResourceStorage> stores=validEnergyNodes(player,true).stream().map(PlayerEnergyNode::resources).toList();
-        if(stores.isEmpty()) { network.putInt("paid_ticks",0);return; }
-        List<Bind> binds=getBinds(player);
-        var plan=net.gasharaujo.timelesss.resource.FuelPayment.plan(stores,ResourceConfig.networkResources(),type -> {
-            long cost=0;
-            for(Bind bind:binds) cost=net.gasharaujo.timelesss.resource.ResourceMath.add(cost,ResourceConfig.cost(type,bind.multiplier));
+        CompoundTag network = data(player);
+        List<PlayerEnergyNode> nodes = validEnergyNodes(player, true);
+        List<ResourceStorage> stores = nodes.stream().map(PlayerEnergyNode::resources).toList();
+        network.remove(FULL_CAPACITY_PAYMENT_KEY);
+        if (stores.isEmpty()) {
+            network.putInt("paid_ticks", 0);
+            return;
+        }
+
+        if (stores.stream().anyMatch(store -> store.amount(ResourceType.ENERGY) > 0)) {
+            TimelesssAdvancements.award(player, "using_power");
+        }
+        checkBulkBatteries(player, nodes);
+
+        List<Bind> binds = getBinds(player);
+        var plan = FuelPayment.plan(stores, ResourceConfig.networkResources(), type -> {
+            long cost = 0;
+            for (Bind bind : binds) {
+                cost = ResourceMath.add(cost, ResourceConfig.cost(type, bind.multiplier));
+            }
             return cost;
-        },key -> network.getStringOr(key,""));
-        network.putInt("paid_ticks",plan!=null && plan.apply(network::putString) ? 20 : 0);
+        }, key -> network.getStringOr(key, ""));
+        boolean paid = plan != null && plan.apply(network::putString);
+        network.putInt("paid_ticks", paid ? 20 : 0);
+        if (paid && !plan.debits().isEmpty()) {
+            ResourceType type = plan.debits().get(0).type();
+            long capacity = stores.stream().mapToLong(store -> store.capacity(type)).sum();
+            long charged = plan.debits().stream().mapToLong(FuelPayment.Debit::amount).sum();
+            if (charged == capacity) {
+                network.putBoolean(FULL_CAPACITY_PAYMENT_KEY, true);
+            }
+        }
+    }
+
+    public static void checkBulkBatteries(ServerPlayer player) {
+        checkBulkBatteries(player, validEnergyNodes(player, false));
+    }
+
+    private static void checkBulkBatteries(ServerPlayer player, List<PlayerEnergyNode> nodes) {
+        long extraBatteries = nodes.stream()
+            .filter(BatteryHubBlockEntity.class::isInstance)
+            .map(BatteryHubBlockEntity.class::cast)
+            .mapToLong(hub -> hub.getBatteryCount() - BatteryHubBlockEntity.INITIAL_BATTERIES)
+            .sum();
+        if (extraBatteries >= BULK_BATTERIES) {
+            TimelesssAdvancements.award(player, "bulk_accelerate");
+        }
     }
 
     public static String snapshot(ServerPlayer player) {
@@ -195,7 +247,9 @@ public final class TimeNetwork {
             list.add(entry);
         }
         data(player).put(BINDS_KEY, list);
-        data(player).putInt("paid_ticks", 0);
+        CompoundTag network = data(player);
+        network.putInt("paid_ticks", 0);
+        network.remove(FULL_CAPACITY_PAYMENT_KEY);
     }
 
     private static CompoundTag data(ServerPlayer player) {

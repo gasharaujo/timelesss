@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
@@ -74,7 +75,7 @@ public final class CommonGameEvents {
         }
         if (player.level().getBlockEntity(clickedPos) instanceof net.gasharaujo.timelesss.block.entity.ResourceBlockEntity resourceBlock) {
             if (!player.level().isClientSide()) {
-                boolean fueling=stack.is(TimelesssMod.BATTERY.get()) || player.isShiftKeyDown()
+                boolean fueling=player.isShiftKeyDown()
                     || resourceBlock.resources().enabled(net.gasharaujo.timelesss.resource.ResourceType.FLUID)
                     || resourceBlock.resources().enabled(net.gasharaujo.timelesss.resource.ResourceType.ITEM);
                 if(fueling || !distributor) net.gasharaujo.timelesss.resource.ResourceInteraction.block(player,event.getHand(),resourceBlock);
@@ -87,6 +88,18 @@ public final class CommonGameEvents {
     @SubscribeEvent
     public static void levelTick(LevelTickEvent.Post event) {
         if (event.getLevel() instanceof ServerLevel level) TimeNetwork.tick(level);
+    }
+
+    @SubscribeEvent
+    public static void itemCrafted(PlayerEvent.ItemCraftedEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ItemStack crafted = event.getCrafting();
+            if (crafted.is(TimelesssMod.TIMELESSS.get())) {
+                TimelesssAdvancements.award(player, "im_timelesss_now");
+            } else if (crafted.is(TimelesssMod.TIME_DISTRIBUTOR_ITEM.get())) {
+                TimelesssAdvancements.award(player, "master_of_time");
+            }
+        }
     }
 
     private static void succeed(PlayerInteractEvent.RightClickBlock event) {

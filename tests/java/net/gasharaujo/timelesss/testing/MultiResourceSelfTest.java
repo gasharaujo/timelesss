@@ -63,12 +63,6 @@ public final class MultiResourceSelfTest {
         eq(4,loaded.resources().amount(ResourceType.ITEM,"minecraft:charcoal"),"second item survives save/load");
         gas(s);
 
-        var battery=ResourceStorage.item(new ItemStack(TimelesssMod.BATTERY.get()));
-        battery.insert(ResourceType.ENERGY,90,false);battery.insert(ResourceType.FLUID,"minecraft:water",25,false);battery.insert(ResourceType.ITEM,"minecraft:charcoal",3,false);
-        s.set(ResourceType.ENERGY,0);s.set(ResourceType.FLUID,"minecraft:water",0);s.set(ResourceType.FLUID,"minecraft:lava",0);s.set(ResourceType.ITEM,0);
-        battery.transferTo(s);
-        eq(90,s.amount(ResourceType.ENERGY),"battery transfers FE");eq(25,s.amount(ResourceType.FLUID,"minecraft:water"),"battery transfers second fluid");eq(3,s.amount(ResourceType.ITEM,"minecraft:charcoal"),"battery transfers second item");
-        eq(0,battery.amount(ResourceType.ENERGY)+battery.amount(ResourceType.FLUID)+battery.amount(ResourceType.ITEM),"battery debited once");
         payment();network(level);personal(level);
         ResourceConfig.NETWORK_RESOURCE.set(List.of("ENERGY"));ResourceConfig.NETWORK_RESOURCE.clearCache();
         ResourceConfig.FLUID.set("");ResourceConfig.FLUID.clearCache();ResourceConfig.GAS.set("");ResourceConfig.GAS.clearCache();ResourceConfig.ITEM.set("");ResourceConfig.ITEM.clearCache();
@@ -93,7 +87,7 @@ public final class MultiResourceSelfTest {
         eq(2,FuelRules.materials(table.get("network.gas"),"mekanism:hydrogen").size(),"real TOML associated table survives loader validation");
     }
     private static void payment() {
-        ResourceStorage s=ResourceStorage.item(new ItemStack(TimelesssMod.BATTERY.get()));Map<String,String> credit=new HashMap<>();
+        ResourceStorage s=new TimeDistributorBlockEntity(BlockPos.ZERO, TimelesssMod.TIME_DISTRIBUTOR.get().defaultBlockState()).resources();Map<String,String> credit=new HashMap<>();
         s.insert(ResourceType.ENERGY,99,false);s.insert(ResourceType.FLUID,"minecraft:lava",40,false);s.insert(ResourceType.FLUID,"minecraft:water",49,false);s.insert(ResourceType.GAS,"mekanism:oxygen",25,false);
         var quote=FuelPayment.plan(List.of(s),s.types(),t -> ResourceConfig.cost(t,1),credit::get);
         ok(quote!=null && quote.debits().get(0).id().equals("mekanism:oxygen"),"alternative with sufficient modified balance selected");
@@ -104,7 +98,7 @@ public final class MultiResourceSelfTest {
         for(int i=0;i<4;i++) { var plan=FuelPayment.plan(List.of(s),s.types(),t -> ResourceConfig.cost(t,1),credit::get);ok(plan!=null && plan.apply(credit::put),"fractional item payment "+i); }
         eq(0,s.amount(ResourceType.ITEM,"minecraft:charcoal"),"four 0.25 payments consume exactly one item");
         var before=s.snapshot();ok(FuelPayment.plan(List.of(s),s.types(),t -> ResourceConfig.cost(t,1),credit::get)==null,"exhausted alternatives cannot pay");ok(before.equals(s.snapshot()),"failed quote does not change balances");
-        ResourceStorage second=ResourceStorage.item(new ItemStack(TimelesssMod.BATTERY.get()));s.set(ResourceType.ENERGY,50);second.set(ResourceType.ENERGY,50);
+        ResourceStorage second=new TimeDistributorBlockEntity(BlockPos.ZERO, TimelesssMod.TIME_DISTRIBUTOR.get().defaultBlockState()).resources();s.set(ResourceType.ENERGY,50);second.set(ResourceType.ENERGY,50);
         var atomic=FuelPayment.plan(List.of(s,second),List.of(ResourceType.ENERGY),t -> 100,key -> "");second.extract(ResourceType.ENERGY,1,false);
         ok(!atomic.apply(credit::put),"unexpected partial debit rolls back");eq(50,s.amount(ResourceType.ENERGY),"first debit restored");eq(49,second.amount(ResourceType.ENERGY),"second debit restored to pre-payment balance");
     }

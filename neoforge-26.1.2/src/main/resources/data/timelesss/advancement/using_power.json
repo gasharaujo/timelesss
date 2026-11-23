@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "id": "timelesss:battery_hub"
+    },
+    "title": {
+      "translate": "advancements.timelesss.using_power.title"
+    },
+    "description": {
+      "translate": "advancements.timelesss.using_power.description"
+    },
+    "frame": "task"
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "timelesss:master_of_time"
+}

@@ -1,7 +1,8 @@
 # Just Gash Timelesss
 
-Mod de Gasharaujo, versão **2.5**, para três versões do Minecraft:
+Mod de Gasharaujo, versão **2.5.1**, para quatro versões do Minecraft:
 
+- `neoforge-26.3`: Minecraft 26.3 + NeoForge
 - `neoforge-26.1.2`: Minecraft 26.1.2 + NeoForge
 - `neoforge-1.21.1`: Minecraft 1.21.1 + NeoForge
 - `forge-1.20.1`: Minecraft 1.20.1 + Forge
@@ -10,7 +11,7 @@ O item `timelesss:timelesss` abre a tela de seleção de multiplicador com
 Shift + clique direito no ar. O valor inteiro de 1x até o máximo configurado (25x por padrão) é salvo no próprio
 item e sincronizado com o servidor.
 
-A versão 2.5 permite configurar os máximos, o combustível da rede (FE, fluido,
+O mod permite configurar os máximos, o combustível da rede (FE, fluido,
 gás do Mekanism ou item), capacidades e consumo pessoal (nenhum, fluido,
 durabilidade, XP, FE ou tempo acumulado), além das curvas padrão e linear. A rede aceita múltiplos recursos alternativos
 e múltiplos materiais com modificadores de consumo; as listas possuem nomes
@@ -50,7 +51,8 @@ hotbar e restante do inventário.
 ## Bateria da rede
 
 - `timelesss:battery` é um componente de craft feito com ferro e um bloco de
-  redstone.
+  redstone. Cada pilha comporta até 64 baterias. As baterias antigas perdem
+  a carga que guardavam como item e podem voltar a empilhar.
 - `timelesss:battery_hub` pertence ao jogador que o colocou e estende a energia
   disponível para o Time Binds. As quatro Batteries da receita fornecem a
   capacidade inicial de 40.000 FE.
@@ -58,16 +60,25 @@ hotbar e restante do inventário.
   10.000 FE de capacidade. O bloco aceita o recurso configurado pelas capabilities do loader/Mekanism e sua
   textura acompanha as faixas de carga vazia, 50%, 75% e cheia.
 
+## Conquistas
+
+- **Sem tempo irmão** — fabrique um Timelesss.
+- **Usando energia** — abasteça sua rede temporal com FE.
+- **Mestre do tempo** — fabrique um Time Distributor.
+- **Gerenciando o tempo** — acelere um alvo usando, em um segundo, toda a
+  capacidade ativa de um recurso da sua rede.
+- **Aceleração em massa** — instale 640 baterias extras nos hubs ativos da sua rede.
+  As quatro baterias de cada receita de Hub ficam fora dessa contagem.
+
 Receita do distribuidor: netherita, estrela do Nether, blocos de redstone,
 Timelesss e cabeça de dragão. A haste da Time Wrench usa papel, Timelesss e um
 lingote de netherita.
 
-Os ambientes de teste incluem Jade, JEI, AE2, AdvancedAE, ExtendedAE, Easy
-Villagers, Powah, Curios e suas dependências obrigatórias. No Forge 1.20.1 os JARs de
-teste ficam em `test-mods`, pois o ForgeGradle precisa deobfuscá-los antes de
-iniciar o cliente.
+As integrações são opcionais. Os JARs exigem apenas o Minecraft e o loader
+da versão correspondente.
 
-Use os arquivos `.bat` da raiz para abrir cada ambiente de desenvolvimento ou
-para gerar os três JARs. Os artefatos finais são copiados para `builds`.
+Execute `criar-jars.bat` para compilar os quatro JARs. A pasta `builds/2.5.1`
+contém um `timelesss-2.5.1.jar` por versão do Minecraft. O ZIP agrupa os
+quatro JARs com a mesma estrutura de pastas.
 
-Os testes sem interface podem ser repetidos com `tools/Test-2.5.ps1`.
+Os testes sem interface podem ser repetidos com `tools/Test-Timelesss.ps1`.

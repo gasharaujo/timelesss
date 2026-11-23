@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "item": "timelesss:time_wrench"
+    },
+    "title": {
+      "translate": "advancements.timelesss.time_managing.title"
+    },
+    "description": {
+      "translate": "advancements.timelesss.time_managing.description"
+    },
+    "frame": "task"
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "parent": "timelesss:using_power"
+}

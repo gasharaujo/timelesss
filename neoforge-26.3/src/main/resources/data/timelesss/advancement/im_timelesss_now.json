@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "id": "timelesss:timelesss"
+    },
+    "title": {
+      "translate": "advancements.timelesss.im_timelesss_now.title"
+    },
+    "description": {
+      "translate": "advancements.timelesss.im_timelesss_now.description"
+    },
+    "frame": "task",
+    "background": "minecraft:gui/advancements/backgrounds/stone"
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

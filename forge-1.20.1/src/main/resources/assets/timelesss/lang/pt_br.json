@@ -97,5 +97,15 @@
   "config.timelesss.personal.timeChargePerTick": "Ticks recarregados por tick no inventário",
   "config.timelesss.personal.timeChargePerTick.tooltip": "Quantidade de ticks acumulados recebida por tick do servidor enquanto o item estiver no inventário ou Curios.",
   "config.timelesss.personal.timeLimit": "Limite de tempo acumulado (0 = ilimitado)",
-  "config.timelesss.personal.timeLimit.tooltip": "0 mantém o tempo acumulado sem limite. Outros valores limitam os ticks guardados. Reabra o mundo para aplicar."
+  "config.timelesss.personal.timeLimit.tooltip": "0 mantém o tempo acumulado sem limite. Outros valores limitam os ticks guardados. Reabra o mundo para aplicar.",
+  "advancements.timelesss.im_timelesss_now.title": "Sem tempo irmão",
+  "advancements.timelesss.im_timelesss_now.description": "Fabrique um Timelesss.",
+  "advancements.timelesss.using_power.title": "Usando energia",
+  "advancements.timelesss.using_power.description": "Carregue sua rede temporal com FE pela primeira vez.",
+  "advancements.timelesss.master_of_time.title": "Mestre do tempo",
+  "advancements.timelesss.master_of_time.description": "Fabrique um Time Distributor.",
+  "advancements.timelesss.time_managing.title": "Gerenciando o tempo",
+  "advancements.timelesss.time_managing.description": "Acelere um alvo usando 100% da capacidade da sua rede em um segundo.",
+  "advancements.timelesss.bulk_accelerate.title": "Aceleração em massa",
+  "advancements.timelesss.bulk_accelerate.description": "Instale 640 baterias extras nos Battery Hubs ativos da sua rede."
 }

@@ -9,7 +9,7 @@ echo ========================================
 echo 1. Jogar - Minecraft 26.1.2 NeoForge
 echo 2. Jogar - Minecraft 1.21.1 NeoForge
 echo 3. Jogar - Minecraft 1.20.1 Forge
-echo 4. Criar os tres JARs finais
+echo 4. Criar os quatro JARs finais
 echo 5. Sair
 echo.
 set /p "OPTION=Escolha uma opcao: "

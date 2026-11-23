@@ -3,7 +3,6 @@ package net.gasharaujo.timelesss.resource;
 import java.util.*;
 import java.util.function.*;
 import net.gasharaujo.timelesss.ResourceConfig;
-import net.gasharaujo.timelesss.TimelesssMod;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -12,7 +11,7 @@ import net.minecraft.world.level.material.*;
 
 /** Independent resource kinds; materials share their kind's tank or item slots. */
 public final class ResourceStorage {
-    public enum Kind { HUB, DISTRIBUTOR, BATTERY, PERSONAL }
+    public enum Kind { HUB, DISTRIBUTOR, PERSONAL }
     private final Kind kind;
     private final Supplier<CompoundTag> read;
     private final Consumer<CompoundTag> write;
@@ -21,7 +20,7 @@ public final class ResourceStorage {
         this.kind=kind;this.read=read;this.write=write;this.extras=extras;
     }
     public static ResourceStorage item(ItemStack stack) {
-        return new ResourceStorage(stack.is(TimelesssMod.TIMELESSS.get()) ? Kind.PERSONAL : Kind.BATTERY,
+        return new ResourceStorage(Kind.PERSONAL,
             () -> stack.getOrCreateTag().getCompound("timelesss_resources").copy(), tag -> stack.getOrCreateTag().put("timelesss_resources",tag), () -> 0);
     }
     public List<ResourceType> types() { return kind==Kind.PERSONAL ? List.of(ResourceConfig.personalResource()) : ResourceConfig.networkResources(); }
@@ -105,10 +104,10 @@ public final class ResourceStorage {
             default -> 0;
         };
         if(type==ResourceType.ITEM) { long capacity=0;for(int i=0;i<slots();i++) capacity+=slotLimit(i);return capacity; }
-        if(type==ResourceType.ENERGY) return switch(kind) { case HUB -> ResourceMath.capacity(40000,10000,extras.getAsInt());case DISTRIBUTOR -> 100000;default -> 10000; };
+        if(type==ResourceType.ENERGY) return switch(kind) { case HUB -> ResourceMath.capacity(40000,10000,extras.getAsInt());case DISTRIBUTOR -> 100000;case PERSONAL -> 0; };
         return switch(kind) {
             case HUB -> ResourceMath.capacity(ResourceConfig.value(ResourceConfig.HUB_TANK),ResourceConfig.value(ResourceConfig.BATTERY_TANK),extras.getAsInt());
-            case DISTRIBUTOR -> ResourceConfig.value(ResourceConfig.DISTRIBUTOR_TANK);default -> ResourceConfig.value(ResourceConfig.BATTERY_TANK);
+            case DISTRIBUTOR -> ResourceConfig.value(ResourceConfig.DISTRIBUTOR_TANK);case PERSONAL -> 0;
         };
     }
     public int tanks(ResourceType type) { return ResourceConfig.materials(type).size(); }
@@ -116,7 +115,7 @@ public final class ResourceStorage {
     public long tankCapacity(ResourceType type,int index) { return Math.max(0,capacity(type)-amount(type))+amount(type,tankId(type,index)); }
     public int slots() { return switch(kind) {
         case HUB -> Math.min(32768,ResourceMath.capacity(ResourceConfig.value(ResourceConfig.HUB_SLOTS),ResourceConfig.value(ResourceConfig.BATTERY_SLOTS),extras.getAsInt()));
-        case DISTRIBUTOR -> ResourceConfig.value(ResourceConfig.DISTRIBUTOR_SLOTS);default -> ResourceConfig.value(ResourceConfig.BATTERY_SLOTS);
+        case DISTRIBUTOR -> ResourceConfig.value(ResourceConfig.DISTRIBUTOR_SLOTS);case PERSONAL -> 0;
     }; }
     public int slotLimit(int slot) { String id=slotId(slot);return id.isEmpty() ? ResourceConfig.materials(ResourceType.ITEM).stream().mapToInt(m -> stackLimit(m.id())).max().orElse(64) : stackLimit(id); }
     public int stackLimit() { return stackLimit(ResourceConfig.id(ResourceType.ITEM)); }
@@ -154,11 +153,6 @@ public final class ResourceStorage {
         ResourceLocation id=ResourceLocation.tryParse(value);if(id==null) return null;return ((net.minecraftforge.registries.IForgeRegistry<?>)registry).getValue(id);
     }
     public boolean validItem(ItemStack stack) { return enabled(ResourceType.ITEM) && !stack.isEmpty() && ResourceConfig.accepts(ResourceType.ITEM,itemId(stack)) && ItemStack.isSameItemSameTags(stack,new ItemStack(stack.getItem())); }
-    public void transferTo(ResourceStorage target) {
-        for(ResourceType type:types()) if(target.enabled(type)) for(var material:ResourceConfig.materials(type)) {
-            long moved=target.insert(type,material.id(),amount(type,material.id()),false);extract(type,material.id(),moved,false);
-        }
-    }
     public CompoundTag snapshot() { return read.get().copy(); }
     public void restore(CompoundTag tag) { write.accept(tag.copy()); }
 }

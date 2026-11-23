@@ -141,9 +141,9 @@ até 32.768 slots; esse também é o teto de slots do Hub expandido.
 
 As quatro baterias da receita fazem parte da capacidade inicial do Hub.
 Uma bateria adicionada depois aumenta a capacidade conforme a tabela.
-A Battery agora também guarda o recurso ativo; por isso ocupa uma unidade por
-stack. Instalar uma Battery no Hub transfere o saldo dela e consome a bateria.
-No Distributor, clicar com uma Battery apenas transfere seu saldo, preservando-a.
+Na versão 2.5.1, cada pilha comporta 64 baterias. O Hub consome uma bateria
+ao instalar a ampliação de capacidade. As chaves de configuração
+`batteryTank` e `batterySlots` definem quanto cada bateria extra acrescenta ao Hub.
 
 FE, fluidos, itens e gás/químicos são expostos pelas capabilities do loader e
 do Mekanism, permitindo abastecimento por máquinas, tubos e cabos. As capabilities de todos os
@@ -180,17 +180,16 @@ timeLimit = 0 # 0 = sem limite de ticks acumulados
   no Curios e gasta 1 tick por tick acelerado. Não recarrega fora do jogador ou
   offline. Não tem limite por padrão.
 
-Para abastecer manualmente, segure o item pessoal/Battery em uma mão e um
-recipiente de fluido ou combustível na outra e clique direito no ar, sem Shift.
-Uma Battery também pode transferir energia/fluido ao item pessoal quando
-esses tipos estiverem aceitos na rede; cada material mantém seu ID. Shift + clique direito continua abrindo o multiplicador.
+Para abastecer o item pessoal com fluido, segure o Timelesss em uma mão e
+o recipiente na outra e clique direito no ar, sem Shift. Shift + clique
+direito abre o multiplicador.
 O item pessoal aceita FE/fluido diretamente pelas capabilities quando configurado
 para esses consumos.
 
 ## Verificação
 
-`tools/Test-2.5.ps1` executa os testes em servidores sem interface, dentro de
-`.timelesss-2.5-tests` nas instâncias de teste. Esses mundos são separados dos
+`tools/Test-Timelesss.ps1` executa os testes em servidores sem interface, dentro de
+`.timelesss-2.5.1-tests` nas instâncias de teste. Esses mundos são separados dos
 saves existentes e têm volume mestre zero. Os testes incluem capacidades,
 expansão, filtros de combustível, simulação/transações, persistência por NBT,
 consumo e falta de saldo, recarga, limites, XP, durabilidade e pagamento da rede.

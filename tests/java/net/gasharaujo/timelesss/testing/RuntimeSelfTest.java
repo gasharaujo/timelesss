@@ -54,14 +54,12 @@ public final class RuntimeSelfTest {
         BatteryHubBlockEntity hub=new BatteryHubBlockEntity(BlockPos.ZERO,TimelesssMod.BATTERY_HUB.get().defaultBlockState());
         for(ResourceType type:new ResourceType[]{ResourceType.ENERGY,ResourceType.FLUID,ResourceType.GAS,ResourceType.ITEM}) {
             ResourceConfig.NETWORK_RESOURCE.set(type);ResourceConfig.NETWORK_RESOURCE.clearCache();
-            ResourceStorage battery=ResourceStorage.item(new ItemStack(TimelesssMod.BATTERY.get()));
             long hubCap=type==ResourceType.ENERGY?40000:type==ResourceType.ITEM?16*64:16000;
             long batteryCap=type==ResourceType.ENERGY?10000:type==ResourceType.ITEM?2*64:1000;
             long distributorCap=type==ResourceType.ENERGY?100000:type==ResourceType.ITEM?2*64:1000;
             // A fresh hub is used for every mode.
             hub=new BatteryHubBlockEntity(BlockPos.ZERO,TimelesssMod.BATTERY_HUB.get().defaultBlockState());
             eq(hubCap,hub.getResourceCapacity(),type+" hub capacity");
-            eq(batteryCap,battery.capacity(type),type+" battery capacity");
             eq(distributorCap,distributor.getResourceCapacity(),type+" distributor capacity");
             ok(hub.insertBattery(),"extra battery accepted");
             eq(hubCap+batteryCap,hub.getResourceCapacity(),type+" hub expansion");
@@ -148,6 +146,7 @@ public final class RuntimeSelfTest {
         ResourceConfig.NETWORK_RESOURCE.set(ResourceType.ENERGY);ResourceConfig.NETWORK_RESOURCE.clearCache();
         ResourceConfig.CURVE.set(ResourceConfig.Curve.DEFAULT);ResourceConfig.CURVE.clearCache();
         MultiResourceSelfTest.run(level);
+        AdvancementSelfTest.run(level);
         System.out.println("TIMELESSS_SELFTEST_PASSED checks="+checks);
     }
 

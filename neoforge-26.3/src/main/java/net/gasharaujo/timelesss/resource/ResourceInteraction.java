@@ -2,9 +2,11 @@ package net.gasharaujo.timelesss.resource;
 
 import net.gasharaujo.timelesss.TimelesssMod;
 import net.gasharaujo.timelesss.ResourceConfig;
+import net.gasharaujo.timelesss.TimeNetwork;
 import net.gasharaujo.timelesss.block.entity.ResourceBlockEntity;
 import net.gasharaujo.timelesss.block.entity.BatteryHubBlockEntity;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,13 +20,13 @@ public final class ResourceInteraction {
         ItemStack held=player.getItemInHand(hand);
         if(block instanceof BatteryHubBlockEntity hub && held.is(TimelesssMod.BATTERY.get())) {
             if(!hub.insertBattery()) return;
-            ResourceStorage source=ResourceStorage.item(held), target=hub.resources();
-            source.transferTo(target);
             held.shrink(1);
-        } else if(held.is(TimelesssMod.BATTERY.get())) {
-            ResourceStorage source=ResourceStorage.item(held), target=block.resources();
-            source.transferTo(target);
-        } else fill(player,hand,block.resources());
+            if (player instanceof ServerPlayer serverPlayer) {
+                TimeNetwork.checkBulkBatteries(serverPlayer);
+            }
+        } else {
+            fill(player, hand, block.resources());
+        }
         for(ResourceType type:block.resources().types()) player.sendSystemMessage(Component.translatable("message.timelesss.resource_status",block.resources().amount(type),block.resources().capacity(type),type.name()+" "+ResourceConfig.unit(type)));
     }
     public static boolean fill(Player player, InteractionHand hand, ResourceStorage s) {
@@ -38,11 +40,6 @@ public final class ResourceInteraction {
     }
     public static void fillPersonal(Player player, InteractionHand hand, ItemStack stack) {
         InteractionHand source=hand==InteractionHand.MAIN_HAND ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-        ItemStack held=player.getItemInHand(source);
-        ResourceStorage target=ResourceStorage.item(stack);
-        if(held.is(TimelesssMod.BATTERY.get())) {
-            ResourceStorage battery=ResourceStorage.item(held);
-            battery.transferTo(target);
-        } else fill(player,source,target);
+        fill(player, source, ResourceStorage.item(stack));
     }
 }

@@ -1,20 +1,25 @@
 package net.gasharaujo.timelesss.item;
 
-import net.minecraft.world.item.*;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.network.chat.Component;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import org.jspecify.annotations.Nullable;
 
 public final class BatteryItem extends Item {
-    public BatteryItem(Properties properties) { super(properties.stacksTo(1)); }
-    @Override public net.minecraft.world.InteractionResult use(Level level, Player player, net.minecraft.world.InteractionHand hand) {
-        ItemStack stack=player.getItemInHand(hand);
-        if(!level.isClientSide()) net.gasharaujo.timelesss.resource.ResourceInteraction.fillPersonal(player,hand,stack);
-        return net.minecraft.world.InteractionResult.SUCCESS;
-    }
-    @Override public void appendHoverText(ItemStack stack, TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flag) {
-        var s=net.gasharaujo.timelesss.resource.ResourceStorage.item(stack);
-        for(var type:s.types()) tooltip.accept(Component.translatable("tooltip.timelesss.resource",type.name(),s.amount(type),s.capacity(type)));
+    public BatteryItem(Properties properties) {
+        super(properties.stacksTo(64));
     }
 
+    // Remove obsolete charge data so older batteries can merge with fresh stacks.
+    @Override
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity owner, @Nullable EquipmentSlot slot) {
+        CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+        if (data != null && data.contains("timelesss_resources")) {
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove("timelesss_resources"));
+        }
+    }
 }
