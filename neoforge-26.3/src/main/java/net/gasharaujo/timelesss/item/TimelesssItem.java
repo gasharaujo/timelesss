@@ -1,0 +1,104 @@
+package net.gasharaujo.timelesss.item;
+
+import java.util.function.Consumer;
+import net.gasharaujo.timelesss.client.ClientEvents;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+
+public final class TimelesssItem extends Item {
+    public static final String MULTIPLIER_KEY = "timelesss_multiplier";
+    public static final int MIN_MULTIPLIER = 1;
+    public static int maxMultiplier() { return net.gasharaujo.timelesss.ResourceConfig.personalMax(); }
+
+    public TimelesssItem(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        if (!player.isShiftKeyDown()) {
+            if (!level.isClientSide()) net.gasharaujo.timelesss.resource.ResourceInteraction.fillPersonal(player, hand, stack);
+            return InteractionResult.PASS;
+        }
+
+        setMultiplier(stack, getMultiplier(stack));
+        if (level.isClientSide()) {
+            ClientEvents.openMultiplierScreen(TimelesssLocator.inHand(hand, stack));
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        if (!context.getLevel().isClientSide() && context.getPlayer() != null) {
+            TimelesssAccelerator.accelerateBlock(
+                context.getPlayer(),
+                context.getLevel(),
+                context.getClickedPos(),
+                context.getClickedFace(),
+                context.getItemInHand()
+            );
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public InteractionResult interactLivingEntity(
+        ItemStack stack,
+        Player player,
+        LivingEntity target,
+        InteractionHand hand
+    ) {
+        if (!player.level().isClientSide()) {
+            TimelesssAccelerator.accelerateEntity(player, target, stack);
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public void appendHoverText(
+        ItemStack stack,
+        TooltipContext context,
+        TooltipDisplay display,
+        Consumer<Component> tooltip,
+        TooltipFlag flag
+    ) {
+        tooltip.accept(Component.translatable("tooltip.timelesss.multiplier", getMultiplier(stack)).withStyle(ChatFormatting.AQUA));
+        tooltip.accept(Component.translatable("tooltip.timelesss.open").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(net.gasharaujo.timelesss.resource.PersonalResources.status(stack).copy().withStyle(ChatFormatting.GRAY));
+    }
+
+
+    @Override public boolean isBarVisible(ItemStack stack) {
+        var type=net.gasharaujo.timelesss.ResourceConfig.personalResource();
+        return type!=net.gasharaujo.timelesss.resource.ResourceType.NONE && type!=net.gasharaujo.timelesss.resource.ResourceType.XP;
+    }
+    @Override public int getBarWidth(ItemStack stack) { return net.gasharaujo.timelesss.resource.PersonalResources.barWidth(stack); }
+    @Override public int getBarColor(ItemStack stack) { return 0x55DDCC; }
+
+    public static int getMultiplier(ItemStack stack) {
+        int value = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
+            .copyTag()
+            .getIntOr(MULTIPLIER_KEY, MIN_MULTIPLIER);
+        return Mth.clamp(value, MIN_MULTIPLIER, maxMultiplier());
+    }
+
+    public static void setMultiplier(ItemStack stack, int multiplier) {
+        int clamped = Mth.clamp(multiplier, MIN_MULTIPLIER, maxMultiplier());
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt(MULTIPLIER_KEY, clamped));
+    }
+}

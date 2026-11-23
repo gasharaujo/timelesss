@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["NSN", "RTR", "NDN"],
+  "key": {
+    "N": "minecraft:netherite_ingot",
+    "S": "minecraft:nether_star",
+    "R": "minecraft:redstone_block",
+    "T": "timelesss:timelesss",
+    "D": "minecraft:dragon_head"
+  },
+  "result": { "id": "timelesss:time_distributor", "count": 1 }
+}
